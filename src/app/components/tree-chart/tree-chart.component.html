@@ -1,1 +1,6 @@
-<div id='phylogram'></div>
+<mat-radio-group value="rectangular" (change)="changeTreeType($event)" aria-label="Select an option">
+    <mat-radio-button value="radial">radial</mat-radio-button>
+    <mat-radio-button value="rectangular">rectangular</mat-radio-button>
+</mat-radio-group>
+<div *ngIf="treeType == 'radial'" id='radial'></div>
+<div *ngIf="treeType == 'rectangular'" id='rectangular'></div>

@@ -5,6 +5,69 @@ declare var jQuery: any
 
 let svg: any
 
+
+// GLOBALS
+// --------------
+var options = {} as any;
+var mapParse: any
+var colorScales: any
+var mappingFile: any
+
+// use margin convention
+// https://bl.ocks.org/mbostock/3019563
+var margin = {top: 0, right: 10, bottom: 10, left: 10};
+var startW = 800, startH = 600;
+var width = startW - margin.left - margin.right;
+var height = startH - margin.top - margin.bottom;
+var nodes: any
+var links: any
+var node: any
+var link: any
+var newick: any
+var shiftX = 0;
+var shiftY = 0;
+console.log(d3)
+var zoom = d3.behavior.zoom()
+
+// tree defaults
+var treeType = 'rectangular'; // rectangular or circular [currently rendered treeType]
+var scale = true; // if true, tree will be scaled by distance metric
+
+// scale for adjusting legend
+// text color based on background
+// [background HSL -> L value]
+// domain is L (0,1)
+// range is RBG
+var legendColorScale = d3.scale.linear().domain([0.5,1]).range([255,0])
+
+// tooltip
+
+
+var tip = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset([0,20])
+    .html(function(d: any) {
+        return formatTooltip(d, options.mapping);
+    })
+var outerRadius = startW / 2,
+    innerRadius = outerRadius - 170;
+
+// setup radial tree
+var radialTree = d3.layout.cluster()
+    .size([360, innerRadius])
+    .children(function(d: any) { return d.branchset; })
+
+// setup rectangular tree
+var rectTree = d3.layout.cluster()
+    .children(function(node: any) {
+        return node.branchset
+    })
+    .size([height, width]);
+
+var duration = 1000;
+
+
+
 var Newick = {parse: function(s: any) {
     var ancestors = [];
     var tree = {} as any;
@@ -1188,6 +1251,7 @@ function validateInputs(dat: any, options: any, div: any) {
 // callback for rotation slider
 // paratmer: degree of rotation
 function rotateTree() {
+    console.log('rotateTree')
 }
 
 
@@ -1210,7 +1274,7 @@ needed 180
 
 */
 function orientTreeLabels() {
-
+    console.log()
     var deg = 0;
     var rad = 0;
 
@@ -1285,7 +1349,7 @@ function getGUIoptions() {
     // get slider vals
 
     options.sliderScaleV = 10; 
-    options.sliderLeafR = 5;
+    options.sliderLeafR = 50;
 
     // get dropdown values
     var leafColor, backgroundColor;
@@ -1403,66 +1467,6 @@ function updateLegend() {
 
 
 
-// GLOBALS
-// --------------
-var options = {} as any;
-var mapParse: any
-var colorScales: any
-var mappingFile: any
-
-// use margin convention
-// https://bl.ocks.org/mbostock/3019563
-var margin = {top: 0, right: 10, bottom: 10, left: 10};
-var startW = 800, startH = 600;
-var width = startW - margin.left - margin.right;
-var height = startH - margin.top - margin.bottom;
-var nodes: any
-var links: any
-var node: any
-var link: any
-var newick: any
-var shiftX = 0;
-var shiftY = 0;
-console.log(d3)
-var zoom = d3.behavior.zoom()
-
-// tree defaults
-var treeType = 'rectangular'; // rectangular or circular [currently rendered treeType]
-var scale = true; // if true, tree will be scaled by distance metric
-
-// scale for adjusting legend
-// text color based on background
-// [background HSL -> L value]
-// domain is L (0,1)
-// range is RBG
-var legendColorScale = d3.scale.linear().domain([0.5,1]).range([255,0])
-
-// tooltip
-
-
-var tip = d3.tip()
-    .attr('class', 'd3-tip')
-    .offset([0,20])
-    .html(function(d: any) {
-        return formatTooltip(d, options.mapping);
-    })
-var outerRadius = startW / 2,
-    innerRadius = outerRadius - 170;
-
-// setup radial tree
-var radialTree = d3.layout.cluster()
-    .size([360, innerRadius])
-    .children(function(d: any) { return d.branchset; })
-
-// setup rectangular tree
-var rectTree = d3.layout.cluster()
-    .children(function(node: any) {
-        return node.branchset
-    })
-    .size([height, width]);
-
-var duration = 1000;
-
 
 
 
@@ -1505,6 +1509,73 @@ export function init(dat: any, div: any, options: any) {
 
     // show loading spinner
     // showSpinner(div, true)
+    svg = undefined
+
+
+
+        // GLOBALS
+    // --------------
+    options = options;
+    mapParse= undefined
+    colorScales= undefined
+    mappingFile= undefined
+
+    // use margin convention
+    // https://bl.ocks.org/mbostock/3019563
+    margin = {top: 0, right: 10, bottom: 10, left: 10};
+    startW = 1400, startH = 800;
+    width = startW - margin.left - margin.right;
+    height = startH - margin.top - margin.bottom;
+    nodes= undefined
+    links= undefined
+    node= undefined
+    link= undefined
+    newick= undefined
+    shiftX = 1;
+    shiftY = 1;
+    console.log('check')
+    zoom = d3.behavior.zoom()
+
+    // tree defaults
+    treeType = 'rectangular'; // rectangular or circular [currently rendered treeType]
+    scale = true; // if true, tree will be scaled by distance metric
+
+    // scale for adjusting legend
+    // text color based on background
+    // [background HSL -> L value]
+    // domain is L (0,1)
+    // range is RBG
+    legendColorScale = d3.scale.linear().domain([0.5,1]).range([255,0])
+
+    // tooltip
+
+
+    tip = d3.tip()
+        .attr('class', 'd3-tip')
+        .offset([0,20])
+        .html(function(d: any) {
+            return formatTooltip(d, options.mapping);
+        })
+    outerRadius = startW / 2,
+        innerRadius = outerRadius - 170;
+
+    // setup radial tree
+    radialTree = d3.layout.cluster()
+        .size([360, innerRadius])
+        .children(function(d: any) { return d.branchset; })
+
+    // setup rectangular tree
+    rectTree = d3.layout.cluster()
+        .children(function(node: any) {
+            return node.branchset
+        })
+        .size([height, width]);
+
+    duration = 1000;
+
+
+
+
 
     validateInputs(dat, options, div);
 
@@ -1514,7 +1585,7 @@ export function init(dat: any, div: any, options: any) {
     console.log(newick)
 
     // render tree
-    buildTree(div, newick, options, function() { updateTree(); });
+    buildTree(div, newick, options, function() { updateTree(options); });
 
 
 }
@@ -1622,12 +1693,14 @@ Parameters:
 */
 function layoutTree(tree: any, newick: any, opts: any) {
     d3.selectAll("g.ruleGroup").remove() // remove ruler
-    var yscale
-    var xscale
+    var yscale = null
+    var xscale = null
     nodes = tree.nodes(newick);
     if (!opts.skipBranchLengthScaling) { yscale = scaleBranchLengths(nodes); }
     if (opts.treeType == 'rectangular') { xscale = scaleLeafSeparation(tree, nodes); }
     links = tree.links(nodes);
+
+    console.log(opts)
 
     formatTree(nodes, links, yscale, xscale, height, opts);
 }
@@ -1641,18 +1714,20 @@ is changed; this will redraw the tree based
 on GUI settings.
 
 */
-function updateTree() {
+function updateTree(options: any) {
 
+    console.log(options)
 
     getGUIoptions(); // set our globals
 
-
+    console.log(options)
 
     // adjust physical positioning
     if (options.typeChange || options.skipBranchLengthScaling != scale) {
 
         layoutTree( options.treeType == 'rectangular' ? rectTree : radialTree, newick, options);
 
+        console.log(options.treeType)
         // reset rotation to 0 (rect) or to previous pos (radial)
         d3.select('#treeSVG').attr('transform', function(d: any) {
             if (options.treeType == 'rectangular') {
@@ -1718,3 +1793,6 @@ function updateTree() {
     }
 
 }
+
+
+
