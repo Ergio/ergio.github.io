@@ -1,0 +1,160 @@
+.render { 
+    font-family: -apple-system, BlinkMacSystemFont, "Open Sans", Helvetica, sans-serif; 
+    font-size: 11px;
+}
+
+.legend {
+    font-size: 11px;
+}
+
+/* branch tip styling */
+.leaf circle {
+    fill: greenYellow;
+    stroke: yellowGreen;
+    stroke-width: 2px;
+}
+
+.leaf text {
+    font-size: 10px;
+    fill: black;
+}
+
+.leaf rect {
+    fill: steelblue;
+    opacity: 1e-6; /* initially hide leaf background */
+}
+/* branch tip styling */
+
+
+/* background distance rulers */
+text.rule {
+    font-size: 8px;
+    fill: #ccc;
+    text-decoration: underline;
+}
+
+.ruleGroup {
+    stroke: #ddd;
+    fill: none;
+    stroke-width: 1px;
+}
+/* background distance rulers */
+
+
+.root {
+    fill : steelblue;
+    stroke-width: 2px;
+    stroke: #369;
+}
+
+
+/* inside of tree */
+.inner text {
+    font-size: 8px;
+    fill: #ccc;
+}
+
+
+/* branches of tree */
+path.link {
+    fill: none;
+    stroke: #aaa;
+    stroke-width: 2px;
+}
+
+/* extra small dropdown */
+.form-control.input-xs {
+    height: 20px;
+}
+
+.node.inner {
+    fill: #aaa;
+    cursor: pointer;
+}
+
+/* tooltip */
+.d3-tip {
+    line-height: 1;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 2px;
+    line-height: 130%;
+    font-size: 12px;
+    font-family: "Open Sans", Helvetica, sans-serif; 
+    max-width: 500px;
+    word-wrap: break-word;
+    z-index: 10;
+}
+
+.d3-tip .tip-title {
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+.d3-tip .tip-name {
+    color: red;
+}
+
+.tip-meta-title {
+}
+
+.tip-meta-name {
+}
+
+
+text {
+    font-family: "Open Sans";
+}
+
+@media print {
+    #gui { display:none; }
+    svg { 
+        width: 9in;
+        height: 6.5in;
+        margin: 0 0 0 0;
+    }
+}
+
+
+/* manually added because external CSS
+doesn't seem to be loading well when
+saving SVG
+*/
+.lead {
+    margin-bottom: 20px;
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 1.4
+}
+
+@media (min-width:768px) {
+    .lead {
+        font-size: 21px
+    }
+}
+
+
+/* slider */
+.noUi-horizontal {
+    height: 10px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+.noUi-horizontal .noUi-handle {
+    width: 18px;
+    height: 15px;
+    top: -4px;
+    left: -6px;
+}
+
+.noUi-handle:before,
+.noUi-handle:after {
+    content: none;
+}
+
+/* hide scrolls bar since everything is fit to screen */
+body {
+    overflow: hidden;
+}
