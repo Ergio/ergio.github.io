@@ -1,7 +1,29 @@
 import { colorbrewer } from "./colorbrewer.min"
-import { scaleBranchLengths } from "./scale-branch-lengths";
 
-declare var d3: any
+import * as D3 from "d3";
+import { step } from "./utils/step";
+import { autoSort } from "./utils/autoSort";
+import { scaleBranchLengths } from "./utils/scale-branch-lengths";
+import { elbow } from "./utils/elbow";
+import { addAngles } from "./utils/addAngles";
+import { formatTooltip } from "./utils/formatTooltip";
+import { range } from "./utils/range";
+
+declare var d3: {
+    behavior: typeof  D3.behavior,
+    layout: typeof  D3.layout, 
+    selectAll: typeof  D3.selectAll, 
+    select: any, 
+    tip: any,
+    scale: typeof D3.scale,
+    map: typeof D3.map,
+    min: typeof D3.min,
+    hsl: typeof D3.hsl,
+    rgb: typeof D3.rgb,
+    extent: typeof D3.extent,
+    set: typeof D3.set,
+    event: any//typeof D3.event,
+}
 declare var jQuery: any
 
 let svg: any
@@ -50,9 +72,6 @@ var geneDataObj: any = {
 var tip = d3.tip()
     .attr('class', 'd3-tip')
     .offset([0,20])
-    .html(function(d: any) {
-        return formatTooltip(d, options.mapping);
-    })
 var outerRadius = startW / 2,
     innerRadius = outerRadius - 170;
 
@@ -139,32 +158,6 @@ function scaleLeafSeparation(tree: any, nodes: any, minSeparation=22) {
 
     return xScale;
 }
-
-
-// https://bl.ocks.org/mbostock/c034d66572fd6bd6815a
-// Like d3.svg.diagonal.radial, but with square corners.
-function step(startAngle: any, startRadius: any, endAngle: any, endRadius: any) {
-  var c0 = Math.cos(startAngle = (startAngle - 90) / 180 * Math.PI),
-      s0 = Math.sin(startAngle),
-      c1 = Math.cos(endAngle = (endAngle - 90) / 180 * Math.PI),
-      s1 = Math.sin(endAngle);
-  return "M" + startRadius * c0 + "," + startRadius * s0
-      + (endAngle === startAngle ? "" : "A" + startRadius + "," + startRadius + " 0 0 " + (endAngle > startAngle ? 1 : 0) + " " + startRadius * c1 + "," + startRadius * s1)
-      + "L" + endRadius * c1 + "," + endRadius * s1;
-}
-
-
-// http://bl.ocks.org/mbostock/2429963
-// draw right angle links to join nodes
-function elbow(d: any) {
-  return "M" + d.source.y + "," + d.source.x
-      + "V" + d.target.x + "H" + d.target.y;
-}
-
-
-
-
-
 
 /* Master format tree function
 
@@ -387,193 +380,6 @@ function formatTree(nodes: any, links: any, yscale: any=null, xscale: any=null, 
     }
 }
 
-
-
-
-
-
-/* Process mapping file into useable format
-
-Function responsible for parsing the TSV mapping
-file which contains metadata for formatting the
-tree as well as generating color scales
-for use in the legend and coloring the tree.
-
-Note that any QIIME formatted taxonomy data
-found will automatically be cleaned up removing
-the level prefix and splitting the taxonomy on
-each level into its own metadata category.  This
-allows users to color by a specific taxonomic
-level.
-
-It is assumed that the first column in the mapping
-file has the same values as the leaf names.
-
-Parameters:
-===========
-- data: d3.tsv() parsed data
-    input mapping file processed by d3.tsv; will be
-    an array (where each row in the TSV is an array
-    value) of objects where objects have col headers
-    as keys and file values as values
-
-
-Returns:
-========
-- array
-    returns an array of length 2:
-    0:  d3.map() of parsed TSV data with file column
-        headers as the keys and the values are a d3.map()
-        where leaf names are keys (TSV rows) and values
-        are the row/column values in the file.
-    1:  d3.map() as colorScales where keys are file
-        column headers and values are the color scales.
-        scales take as input the leaf name (file row)
-*/
-function parseMapping(data: any) {
-
-    // get mapping file column headers
-    // we assume first column is the leaf ID
-    var colTSV = d3.map(data[0]).keys();
-    var id = colTSV[0];
-    colTSV.shift(); // remove first col (ID)
-
-    var mapParse = d3.map(); // {colHeader: { ID1: val, ID2: val } }
-
-    data.forEach(function(row: any) {
-        var leafName = row[id];
-        colTSV.forEach( function(col: any, i: any) {
-            var colVal = cleanTaxa(row[col]);
-            let val: any
-
-            if (!mapParse.has(col)) {
-                val = d3.map();
-            } else {
-                val = mapParse.get(col) as any
-            }
-
-            if (typeof colVal === 'object') { // if data was taxa info, it comes back as an obj
-                for (var level in colVal) {
-                    var taxa = colVal[level];
-                    if (!mapParse.has(level)) {
-                        val = d3.map();
-                    } else {
-                        val = mapParse.get(level);
-                    }
-                    val.set(leafName, taxa);
-                    mapParse.set(level, val);
-                }
-            } else {
-                val.set(leafName, colVal);
-                mapParse.set(col, val);
-            }
-        })
-    })
-
-    // setup color scales for mapping columns
-    // keys are mapping column headers and values are scales
-    // for converting column value to a color
-    var colorScales = d3.map();
-    mapParse.forEach(function(k: any, v: any) { // v is a d3.set of mapping column values, with leaf ID has key
-
-        // check if values for mapping column are string or numbers
-        // strings are turned into ordinal scales, numbers into quantitative
-        // we simply check the first value in the obj
-        var vals = autoSort(v.values(), true);
-        var scale;
-        if (typeof vals[0] === 'string' || vals[0] instanceof String) { // ordinal scale
-            var tmp = d3.scale.category10();
-            if (vals.length > 10) {
-                tmp = d3.scale.category10();;
-            }
-            scale = tmp.domain(vals);
-        } else { // quantitative scale
-            scale = d3.scale.quantize()
-                .domain(d3.extent(vals))
-                .range(colorbrewer.Spectral[11]);
-        }
-        colorScales.set(k, scale);
-    })
-
-    return [mapParse, colorScales];
-}
-
-
-
-
-
-
-
-
-/* Clean-up a QIIME formatted taxa string
-
-Will clean-up a QIIME formatted taxonomy string
-by removing the class prefix and returning the
-original taxa string as an object split into taxonomic
-levels e.g. {"Kingdom":"bacteria", ... }
-
-NOTE: any taxa level with an assignment "unassigned" 
-will be thrown out - this way the tree will not
-color by this level (tree can only be colored by
-defined taxa)
-
-Parameters:
-===========
-- taxa : string
-    QIIME formatted string
-
-Returns:
-========
-- cleaned string
-
-*/
-function cleanTaxa(taxa: any) {
-
-    if ((typeof taxa === 'string' || taxa instanceof String) && taxa.slice(0, 2) == 'k_') {
-
-        var str = taxa.replace(/.__/g, "");
-
-        // some taxa strings end in ';' some don't,
-        // remove it if it exists
-        if (str.substr(str.length - 1) == ';') {
-            str = str.substring(0, str.length - 1);
-        }
-
-        var clean = str.split(";");
-
-        var ret: any = {};
-
-        // construct object
-        var taxaLevels = ['Taxa [Kingdom]','Taxa [Phylum]','Taxa [Class]','Taxa [Order]','Taxa [Family]','Taxa [Genus]','Taxa [Species]'];
-        clean.forEach(function(taxa, i) {
-            if (taxa != 'unassigned') {
-                ret[taxaLevels[i]] = taxa;
-            }
-        })
-
-        return ret;
-
-    } else {
-
-        return taxa;
-
-    }
-
-}
-
-// get the viewBox attribute of the outermost svg in
-// format {x0, y0, x1, y1}
-function getViewBox(): any {
-    var vb = jQuery('svg')[0].getAttribute('viewBox');
-
-    if (vb) {
-        var arr = vb.split(' ').map(function(d: any) { return parseInt(d); })
-        return {'x0':arr[0], 'y0':arr[1], 'x1':arr[2], 'y1':arr[3]};
-    } else {
-        return false;
-    }
-}
-
 // get BoundingClientRect of tree
 function getTreeBox() {
 
@@ -588,101 +394,6 @@ function getTreeBox() {
 
 
 }
-
-
-/*  Automatically sort an array
-
-Given an array of strings, were the string
-could be a float (e.g. "1.2") or an int
-(e.g. "5"), this function will convert the
-array if all strings are ints or floats and
-sort it (either alphabetically or numerically
-ascending).
-
-Parameters:
-===========
-- arr: array of strings
-    an array of strings
-- unique: bool
-    default: false
-    if true, only unique values will be returned
-
-Returns:
-- sorted, converted array, will be either
-    all strings or all numbers
-
-*/
-function autoSort(arr: any, unique: any=false) {
-
-    // get unique values of array
-    // by converting to d3.set()
-    if (unique) { arr = d3.set(arr).values(); }
-
-    var vals = arr.map(filterTSVval); // convert to int or float if needed
-    var sorted = (typeof vals[0] === 'string' || vals[0] instanceof String) ? vals.sort() : vals.sort(function(a: any,b: any) { return a - b; }).reverse();
-
-    return sorted;
-
-}
-
-
-
-
-
-
-
-
-// helper function for filtering input TSV values
-// will automatically detect if value is int, float or string and return
-// it as such
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat
-function filterTSVval(value: any) {
-    if (parseFloat(value)) { // if float
-        return parseFloat(value);
-    } else if (parseInt(value)) { // if int
-        return parseInt(value);
-    }
-
-    // ignore blank values
-    if (value != '') {
-        return value;
-    } else {
-        return null;
-    }
-}
-
-
-
-
-/* Function for styling tooltip content
-
-Parameters:
-==========
-- d : node attributes
-
-- mapParse : obj (optional)
-    optional parsed mapping file; keys are mapping file
-    column headers, values are d3 map obj with key as
-    node name and value as file value
-
-Returns:
-========
-- formatted HTML with all node data
-
-*/
-function formatTooltip(d: any, mapParse: any) {
-    const geneData = geneDataObj.geneData
-
-    var html = ""
-
-    const props = ["GENE_NAME", "CLUSTER", "ORGANISM", "CLUSTER_PRODUCT", "BIOSYNTHETIC_CLASSES", "GENE_PRODUCT", "PROTEIN_ID"]
-
-    props.forEach(function(col: any) {
-        html += '<p class="tip-row"><span style="font-weight: 700;" class="tip-meta-title"> ' + col + '</span>: <span class="tip-meta-name">' + geneData[d.name][col] + '</span><p>';
-    })
-    return html;
-}
-
 
 
 /* Generate legend
@@ -837,35 +548,6 @@ function positionLegend() {
 
 
 
-/* helper function to generate array of length
-
-Will generate an array of specified length,
-starting at specified value.
-
-Parameters:
-===========
-- start : int
-    starting value for return array
-- len : int
-    length of desired return array
-
-Returns:
-========
-- array
-    order array with min value 0 and max value n
-
-*/
-
-function range(start: any, len: any) {
-
-    var arr = [];
-
-    for (var i = start; i < (len + start); i++) {
-        arr.push(i);
-    }
-    return arr;
-}
-
 
 /* Ligten a color
 
@@ -924,21 +606,6 @@ function orientTreeLabels() {
 
 
 }
-
-// given two angles, will return the sum clamped to [0, 360]
-function addAngles(a: any,b: any) {
-
-    var sum = parseFloat(a) + parseFloat(b);
-
-    if (sum > 360) {
-        return sum - 360;
-    } else if (sum < 0) {
-        return sum + 360;
-    } else {
-        return sum;
-    }
-}
-
 
 /* Set options global
 
@@ -1130,7 +797,7 @@ export function renderTree(dat: any, div: any, options: any, geneData: any) {
         .attr('class', 'd3-tip')
         .offset([0,20])
         .html(function(d: any) {
-            return formatTooltip(d, options.mapping);
+            return formatTooltip(d, geneData);
         })
     outerRadius = startW / 2,
         innerRadius = outerRadius - 170;
@@ -1186,14 +853,6 @@ Retrurns:
 */
 
 function buildTree(div: any, newick: any, opts: any, callback: any) {
-
-    if ('mapping_dat' in opts) {
-        var parsed = parseMapping(opts.mapping_dat);
-        mapParse = parsed[0];
-        colorScales = parsed[1];
-        options.mapping = mapParse;
-        options.colorScale = colorScales;
-    }
 
     // check opts, if not set, set to default
     if (!('treeType' in opts)) {
@@ -1349,6 +1008,3 @@ function updateTree(options: any, geneData: any) {
     }
 
 }
-
-
-

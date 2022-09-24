@@ -8,17 +8,18 @@ import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import { TreeChartComponent } from './components/tree-chart/tree-chart.component';
 import {MatRadioModule} from '@angular/material/radio';
+import { LegendWidgetComponent } from './components/legend-widget/legend-widget.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    TreeChartComponent
+    LegendWidgetComponent,
+    TreeChartComponent,
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
-
 
     // material
     MatCardModule,

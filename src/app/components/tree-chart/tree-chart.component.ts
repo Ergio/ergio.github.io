@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, ChangeDetectorRef } from '@angular/core';
 import { jsonData1 } from './tree-data/json_data_1';
 import { geneData } from './tree-data/xlsx';
-import { renderTree } from './utils/phylogram_d3';
+import { renderTree } from './d3-render/phylogram_d3';
 
 @Component({
   selector: 'app-tree-chart',
