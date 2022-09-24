@@ -6,7 +6,8 @@ import { renderTree } from './d3-render/phylogram_d3';
 @Component({
   selector: 'app-tree-chart',
   templateUrl: './tree-chart.component.html',
-  styleUrls: ['./tree-chart.component.scss'],
+  styleUrls: ['./tree-chart.component.scss']
+  
 })
 export class TreeChartComponent implements AfterViewInit {
   treeDataObject = jsonData1

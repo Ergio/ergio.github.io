@@ -13,7 +13,6 @@ import { LegendWidgetComponent } from './components/legend-widget/legend-widget.
 @NgModule({
   declarations: [
     AppComponent,
-    LegendWidgetComponent,
     TreeChartComponent,
   ],
   imports: [
