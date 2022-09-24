@@ -1,4 +1,5 @@
 import { colorbrewer } from "./colorbrewer.min"
+import { scaleBranchLengths } from "./scale-branch-lengths";
 
 declare var d3: any
 declare var jQuery: any
@@ -26,7 +27,6 @@ var link: any
 var newick: any
 var shiftX = 0;
 var shiftY = 0;
-console.log(d3)
 var zoom = d3.behavior.zoom()
 
 // tree defaults
@@ -39,6 +39,10 @@ var scale = true; // if true, tree will be scaled by distance metric
 // domain is L (0,1)
 // range is RBG
 var legendColorScale = d3.scale.linear().domain([0.5,1]).range([255,0])
+
+var geneDataObj: any = {
+    geneData: {}
+}
 
 // tooltip
 
@@ -65,44 +69,6 @@ var rectTree = d3.layout.cluster()
     .size([height, width]);
 
 var duration = 1000;
-
-
-
-var Newick = {parse: function(s: any) {
-    var ancestors = [];
-    var tree = {} as any;
-    var tokens = s.split(/\s*(;|\(|\)|,|:)\s*/);
-    for (var i=0; i<tokens.length; i++) {
-      var token = tokens[i];
-      switch (token) {
-        case '(': // new branchset
-          var subtree = {};
-          tree.branchset = [subtree];
-          ancestors.push(tree);
-          tree = subtree;
-          break;
-        case ',': // another branch
-          var subtree = {};
-          ancestors[ancestors.length-1].branchset.push(subtree);
-          tree = subtree;
-          break;
-        case ')': // optional name next
-          tree = ancestors.pop();
-          break;
-        case ':': // optional length next
-          break;
-        default:
-          var x = tokens[i-1];
-          if (x == ')' || x == '(' || x == ',') {
-            tree.name = token;
-          } else if (x == ':') {
-            tree.length = parseFloat(token);
-          }
-      }
-    }
-    return tree;
-  }
-}
 
 // let mapParse: any
 /* Ensure leaf nodes are not overlapping
@@ -173,52 +139,6 @@ function scaleLeafSeparation(tree: any, nodes: any, minSeparation=22) {
 
     return xScale;
 }
-
-
-/* Scale tree by distance metric
-
-Will iterate through tree and set the attribute
-rootDist (at each node) and will adjust the
-y-pos of the tree properly
-
-Parameters:
-===========
-- nodes : d3.tree nodes
-- width : int
-          svg width
-
-Returns:
-========
-- yscale : d3.scale
-           horizontal scale for svg
-*/
-function scaleBranchLengths(nodes: any) {
-
-    // Visit all nodes and adjust y pos width distance metric
-    var visitPreOrder = function(root: any, callback: any) {
-        callback(root)
-        if (root.children) {
-            for (var i = root.children.length - 1; i >= 0; i--){
-                visitPreOrder(root.children[i], callback)
-            };
-        }
-    }
-    visitPreOrder(nodes[0], function(node: any) {
-        node.rootDist = (node.parent ? node.parent.rootDist : 0) + (node.length || 0)
-    })
-    var rootDists = nodes.map(function(n: any) { return n.rootDist; });
-
-    var yscale = d3.scale.linear()
-        .domain([0, d3.max(rootDists)])
-        .range([0, width]);
-
-    visitPreOrder(nodes[0], function(node: any) {
-        node.y = yscale(node.rootDist)
-    })
-    return yscale
-}
-
-
 
 
 // https://bl.ocks.org/mbostock/c034d66572fd6bd6815a
@@ -410,7 +330,7 @@ function formatTree(nodes: any, links: any, yscale: any=null, xscale: any=null, 
                 }
             }
         })
-        .attr("opacity", function(d: any) { return opts.skipLabels ? 1e-6 : 1; });
+        .attr("opacity", function(d: any) { return opts.skipLabels ? 1e-6 : 1; })
 
     orientTreeLabels(); 
 
@@ -468,103 +388,6 @@ function formatTree(nodes: any, links: any, yscale: any=null, xscale: any=null, 
 }
 
 
-/* Display error message
-
-Will display an error messages within
-a bootstrap3 alert div with a message
-
-Parameters:
-==========
-- msg : string
-        message to display within div, formatted as html
-- div : div
-        div into which to render message
-
-Returns:
-=======
-- nothing
-
-*/
-function displayErrMsg(msg: any, div: any) {
-
-    showSpinner(null, false);
-
-    d3.select(div).append('div')
-        .attr('class','alert alert-danger lead col-sm-8 col-sm-offset-2')
-        .style('margin-top','20px')
-        .attr('role','alert')
-        .html(msg);
-}
-
-
-
-/* When called, will display a div with a spinner
-
-Parameters:
-==========
-- div : string
-        div id (with included #) in which to generated tree
-- show : bool (default true)
-         optional boolean to show div, when false the spinner
-         will be removed
-*/
-
-function showSpinner(div: any, show: any=true) {
-
-    if (!show) {
-        d3.select('#spinner').remove();
-    } else {
-
-        // give user a spinner for feedback
-        var spinner = d3.select(div).append('div')
-            .attr('id','spinner')
-            .attr('class','lead alert alert-info col-sm-3 col-sm-offset-4')
-            .style('margin-top','20px');
-
-        spinner.append('i')
-            .attr('class','fa fa-cog fa-spin fa-3x fa-fw')
-        spinner.append('span')
-            .text('Reading file...');
-    }
-}
-
-
-
-
-/* Parse Newick tree
-
-Will process a Newick tree string into
-a format that d3 can parse.
-
-Parameters:
-==========
-- fileStr : str
-            a Newick tree read in as a string
-
-Returns:
-- returns parsed Newick object
-  see: https://github.com/jasondavies/newick.js
-
-*/
-function processNewick(fileStr: any) {
-
-    var newick = Newick.parse(fileStr)
-    var newickNodes = []
-    function buildNewickNodes(node: any, callback?: any) {
-        newickNodes.push(node)
-        if (node.branchset) {
-            for (var i=0; i < node.branchset.length; i++) {
-                buildNewickNodes(node.branchset[i])
-            }
-        }
-    }
-
-    return newick;
-}
-
-
-
-
 
 
 
@@ -617,7 +440,6 @@ function parseMapping(data: any) {
 
     var mapParse = d3.map(); // {colHeader: { ID1: val, ID2: val } }
 
-    let taxaDat = {};
     data.forEach(function(row: any) {
         var leafName = row[id];
         colTSV.forEach( function(col: any, i: any) {
@@ -675,7 +497,6 @@ function parseMapping(data: any) {
 
     return [mapParse, colorScales];
 }
-
 
 
 
@@ -752,76 +573,6 @@ function getViewBox(): any {
         return false;
     }
 }
-
-
-
-
-/*  Fit the SVG viewBox to browser size
-
-function called by "center view" button in GUI
-
-Will adjust the X-Y position as well as the zoom
-so that the entire tree (width & height) are fit
-on the screen.  It then aligns the left-most
-and top-most elements with the window.
-
-*/
-function fitTree() {
-
-    var y1 = window.innerHeight as any;
-    var x1 = window.innerWidth as any;
-     
-    d3.select('svg').attr("viewBox", "0 0 " + parseInt(x1) + " " + parseInt(y1)); // fit viewbox
-
-    // reset position
-    d3.select('#canvasSVG')
-        .attr('transform','translate(0,0) scale(1)')
-
-    // get bounding box of content to fit
-    if (treeType == 'rectangular') {
-        var content = (d3.select('#canvasSVG').node() as any).getBoundingClientRect();
-    } else {
-        var content = (d3.select('#treeSVG').node() as any).getBoundingClientRect();
-        var root = (d3.select('.root').node() as any).getBoundingClientRect();
-        console.log(content, (d3.select('#treeSVG').node() as any).getBoundingClientRect())
-    }
-
-    var zoomScale = d3.min([
-        (jQuery('#gui').outerWidth() - margin.left - margin.right) / content.width, 
-        (y1 - jQuery('#gui').outerHeight(true) - margin.bottom - margin.top) / content.height
-    ]);
-
-    svg.call(zoom.event);
-
-    zoom.scale(zoomScale);
-    if (treeType == 'rectangular') {
-        zoom.translate([margin.left,margin.top]);
-    } else {
-        zoom.translate([x1 / 2, (root.bottom - content.top) * zoom.scale()]);
-    }
-
-    svg.transition().duration(750).call(zoom.event);
-
-}
-
-
-
-
-// get the transform values of selection
-// returns array [X,Y]
-function getTransform(sel: any) {
-
-    var transf = d3.select(sel).attr('transform').replace('translate(','').replace(')','');
-    var tmp = transf.split(',');
-
-    return [parseInt(tmp[0]), parseInt(tmp[1])];
-}
-
-
-
-
-
-
 
 // get BoundingClientRect of tree
 function getTreeBox() {
@@ -920,75 +671,17 @@ Returns:
 
 */
 function formatTooltip(d: any, mapParse: any) {
-    var html = "<div class='tip-title'>Leaf <span class='tip-name'>" + d.name + "</span></div>";
-    
-    if (mapParse) {
-        html += '<hr>';
-        mapParse.keys().forEach(function(col: any) {
-            html += '<p class="tip-row"><span class="tip-meta-title">- ' + col + '</span>: <span class="tip-meta-name">' + mapParse.get(col).get(d.name) + '</span><p>';
-        })
-    }
+    const geneData = geneDataObj.geneData
 
+    var html = ""
+
+    const props = ["GENE_NAME", "CLUSTER", "ORGANISM", "CLUSTER_PRODUCT", "BIOSYNTHETIC_CLASSES", "GENE_PRODUCT", "PROTEIN_ID"]
+
+    props.forEach(function(col: any) {
+        html += '<p class="tip-row"><span style="font-weight: 700;" class="tip-meta-title"> ' + col + '</span>: <span class="tip-meta-name">' + geneData[d.name][col] + '</span><p>';
+    })
     return html;
 }
-
-
-// when called, will open a new tab with the SVG
-// which can then be right-clicked and 'save as...'
-function saveSVG(){
-
-    var viewX = getViewBox().x1;
-    var viewY = (d3.select("#canvasSVG").node() as any).getBoundingClientRect().height;
-
-    d3.select('svg')
-        .attr('width', viewX)
-        .attr('height', viewY)
-        .attr('viewBox',0);
-
-    // get styles from all stylesheets
-    // http://www.coffeegnome.net/converting-svg-to-png-with-canvg/
-    var style = "\n";
-    for (var i=0; i<document.styleSheets.length; i++) {
-        var sheet = document.styleSheets[i];
-        if (sheet.href) {
-            var sheetName = sheet.href.split('/').pop();
-            var rules = sheet.rules;
-            if (rules) {
-                for (var j=0; j<rules.length; j++) {
-                    style += (rules[j].cssText + '\n');
-                }
-            }
-        }
-    }
-
-    var svg = d3.select('svg'),
-        img = new Image(),
-        serializer = new XMLSerializer()
-
-    // prepend style to svg
-    svg.insert('defs',":first-child")
-    d3.select("svg defs")
-        .append('style')
-        .attr('type','text/css')
-        .html(style);
-
-    // generate IMG in new tab
-    var svgStr = serializer.serializeToString(svg.node());
-    img.src = 'data:image/svg+xml;utf8,' +  unescape(encodeURIComponent(svgStr));
-    var tab = window.open(img.src, '_blank') as any
-    // tab.document.title = 'phylogram d3';
-
-    // reset figure
-    d3.select('svg').attr("viewBox", "0 0 " + viewX + " " + viewY); // set viewbox
-    d3.select('svg').attr('width', 0);
-    d3.select('svg').attr('height', 0);
-
-    jQuery('.collapse').collapse('show'); // open GUI since clicking the save button closes it
-};
-
-
-
-
 
 
 
@@ -1144,10 +837,6 @@ function positionLegend() {
 
 
 
-
-
-
-
 /* helper function to generate array of length
 
 Will generate an array of specified length,
@@ -1205,66 +894,11 @@ function dimColor(colorName: any) {
 }
 
 
-
-/* Validat input data and options
-
-Does numerous validation checks on input data; if
-things don't check out, show an error message.
-
-Parameters:
------------
-- dat : string
-		filepath for input Newick tre
-- options: obj
-           options object with potential keys and values
-
-*/
-function validateInputs(dat: any, options: any, div: any) {
-    // ensure a file was passed
-    if (!dat) {
-        var msg = 'Please ensure that, at a minimum, a Newick file is passed to the <code>init()</code> call!';
-        displayErrMsg(msg, div);
-        return false;
-    }
-
-    // ensure options is obj if not passed as such
-    if (!(options !== null && typeof options === 'object')){
-        options = {} as any;
-    }
-
-    // ensure proper tree type was passed
-    if ('treeType' in options) {
-        if (options.treeType != 'radial' && options.treeType != 'rectangular') {
-            var msg = 'Please ensure that the tree type declared in the options object is either "radial" of "rectangular"!';
-            displayErrMsg(msg, div);
-            return false;
-        } 
-    }
-    return undefined
-}
-
-
-
-
-
-
-// callback for rotation slider
-// paratmer: degree of rotation
-function rotateTree() {
-    console.log('rotateTree')
-}
-
-
-
-
-
 // function called when user interacts with plot to pan and zoom with mouse
 function panZoom() {
     // TODO
     d3.select('svg g').attr("transform", "translate(" + (d3.event.translate[0] + shiftX) + "," + (d3.event.translate[1] + shiftY) + ")" + " scale(" + d3.event.scale + ")")
 }
-
-
 
 
 /* 
@@ -1274,7 +908,6 @@ needed 180
 
 */
 function orientTreeLabels() {
-    console.log()
     var deg = 0;
     var rad = 0;
 
@@ -1386,7 +1019,6 @@ function updateLegend() {
         svg.selectAll('g.leaf.node circle')
             .transition()
             .style('fill', function(d: any) {
-                //console.log(d.name, mapVals.get(d.name), colorScale(mapVals.get(d.name)))
                 return mapVals.get(d.name) ? dimColor(colorScale(mapVals.get(d.name))) : 'white'
             })
             .style('stroke', function(d: any) {
@@ -1443,42 +1075,6 @@ function updateLegend() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// --------------
-// GLOBALS
-
-
-
-
-
-
-
 /* initialize tree
 
 Function called from front-end with all user-defined
@@ -1504,24 +1100,14 @@ options obj:
 
 */
 
-
-export function init(dat: any, div: any, options: any) {
-
-    // show loading spinner
-    // showSpinner(div, true)
+export function renderTree(dat: any, div: any, options: any, geneData: any) {
+    console.log(geneData)
+    geneDataObj.geneData = geneData
     svg = undefined
-
-
-
-        // GLOBALS
-    // --------------
     options = options;
     mapParse= undefined
     colorScales= undefined
     mappingFile= undefined
-
-    // use margin convention
-    // https://bl.ocks.org/mbostock/3019563
     margin = {top: 0, right: 10, bottom: 10, left: 10};
     startW = 1400, startH = 800;
     width = startW - margin.left - margin.right;
@@ -1533,22 +1119,12 @@ export function init(dat: any, div: any, options: any) {
     newick= undefined
     shiftX = 1;
     shiftY = 1;
-    console.log('check')
     zoom = d3.behavior.zoom()
-
-    // tree defaults
     treeType = 'rectangular'; // rectangular or circular [currently rendered treeType]
     scale = true; // if true, tree will be scaled by distance metric
 
-    // scale for adjusting legend
-    // text color based on background
-    // [background HSL -> L value]
-    // domain is L (0,1)
-    // range is RBG
+
     legendColorScale = d3.scale.linear().domain([0.5,1]).range([255,0])
-
-    // tooltip
-
 
     tip = d3.tip()
         .attr('class', 'd3-tip')
@@ -1573,23 +1149,16 @@ export function init(dat: any, div: any, options: any) {
 
     duration = 1000;
 
-
-
-
-
-    validateInputs(dat, options, div);
-
     // process Newick tree
-    newick = processNewick(dat);
+    newick = dat
 
     console.log(newick)
 
     // render tree
-    buildTree(div, newick, options, function() { updateTree(options); });
+    buildTree(div, newick, options, function() { updateTree(options, geneDataObj.geneData); });
 
 
 }
-
 
 
 /* Primary tree building function
@@ -1673,7 +1242,6 @@ function buildTree(div: any, newick: any, opts: any, callback: any) {
     }
 
     svg.call(tip);
-    showSpinner(null, false); // hide spinner
     callback(); // calls updateTree
 
 }
@@ -1696,11 +1264,10 @@ function layoutTree(tree: any, newick: any, opts: any) {
     var yscale = null
     var xscale = null
     nodes = tree.nodes(newick);
-    if (!opts.skipBranchLengthScaling) { yscale = scaleBranchLengths(nodes); }
+    if (!opts.skipBranchLengthScaling) { yscale = scaleBranchLengths(nodes, width); }
     if (opts.treeType == 'rectangular') { xscale = scaleLeafSeparation(tree, nodes); }
     links = tree.links(nodes);
 
-    console.log(opts)
 
     formatTree(nodes, links, yscale, xscale, height, opts);
 }
@@ -1714,20 +1281,17 @@ is changed; this will redraw the tree based
 on GUI settings.
 
 */
-function updateTree(options: any) {
+function updateTree(options: any, geneData: any) {
 
-    console.log(options)
 
     getGUIoptions(); // set our globals
 
-    console.log(options)
 
     // adjust physical positioning
     if (options.typeChange || options.skipBranchLengthScaling != scale) {
 
         layoutTree( options.treeType == 'rectangular' ? rectTree : radialTree, newick, options);
 
-        console.log(options.treeType)
         // reset rotation to 0 (rect) or to previous pos (radial)
         d3.select('#treeSVG').attr('transform', function(d: any) {
             if (options.treeType == 'rectangular') {
@@ -1774,15 +1338,7 @@ function updateTree(options: any) {
 
     svg.selectAll('g.leaf.node text')
         .text(function(d: any) {
-            if (options.skipDistanceLabel) {
-                return d.name;
-            } else {
-                if (options.leafText == 'distance' || !mapParse) {
-                    return d.name + ' ('+d.length+')';
-                } else {
-                    return d.name + ' (' + mapParse.get(options.leafText).get(d.name) + ')';
-                }
-            }
+            return geneData && geneData[d.name] && geneData[d.name].GENE_NAME;
         });
 
 

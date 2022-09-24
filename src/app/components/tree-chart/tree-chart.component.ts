@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, ChangeDetectorRef } from '@angular/core';
-import { jsonData } from './tree-data/json_data';
-import { convert_to_newick } from './utils/convert_to_newick';
-import { init } from './utils/phylogram_d3';
+import { jsonData1 } from './tree-data/json_data_1';
+import { geneData } from './tree-data/xlsx';
+import { renderTree } from './utils/phylogram_d3';
 
 @Component({
   selector: 'app-tree-chart',
@@ -9,15 +9,16 @@ import { init } from './utils/phylogram_d3';
   styleUrls: ['./tree-chart.component.scss'],
 })
 export class TreeChartComponent implements AfterViewInit {
+  treeDataObject = jsonData1
+  geneData = geneData
   treeType = 'rectangular'
-  treeData = '(' + convert_to_newick(jsonData, 0) + ')'
 
   constructor(
     private cd: ChangeDetectorRef
   ) {}
 
   ngAfterViewInit(): void {
-    init(this.treeData, '#' + this.treeType, {treeType: this.treeType})
+    renderTree(this.treeDataObject, '#' + this.treeType, {treeType: this.treeType}, this.geneData)
   }
 
   changeTreeType(e: any) {
@@ -25,11 +26,10 @@ export class TreeChartComponent implements AfterViewInit {
 
     setTimeout(() => {
       if (e.value === 'rectangular') {
-        init(this.treeData, '#' + e.value, {treeType: e.value})
-  
+        renderTree(this.treeDataObject, '#' + e.value, {treeType: e.value}, this.geneData)
       }
       if (e.value === 'radial') {
-        init(this.treeData, '#' + e.value, {treeType: e.value})
+        renderTree(this.treeDataObject, '#' + e.value, {treeType: e.value}, this.geneData)
       }
       this.cd.markForCheck()
       this.cd.detectChanges()
