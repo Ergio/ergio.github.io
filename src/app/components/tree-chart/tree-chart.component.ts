@@ -41,13 +41,14 @@ export class TreeChartComponent implements AfterViewInit {
 
   changeTreeType(e: any) {
     this.treeType = e.value
+    const treeRenderer = new TreeRenderer()
 
     setTimeout(() => {
       if (e.value === 'rectangular') {
-        renderTree(this.treeDataObject, '#' + e.value, {treeType: e.value}, this.geneData)
+        treeRenderer.renderTree(this.treeDataObject, '#' + e.value, {treeType: e.value}, this.geneData)
       }
       if (e.value === 'radial') {
-        renderTree(this.treeDataObject, '#' + e.value, {treeType: e.value}, this.geneData)
+        treeRenderer.renderTree(this.treeDataObject, '#' + e.value, {treeType: e.value}, this.geneData)
       }
       this.cd.markForCheck()
       this.cd.detectChanges()

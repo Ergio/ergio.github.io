@@ -30,29 +30,18 @@ declare var d3: {
 }
 declare var jQuery: any
 
-let svg: any
 
 
 // GLOBALS
 // --------------
-var options = {} as any;
-var mapParse: any
-var colorScales: any
-var mappingFile: any
 
 // use margin convention
 // https://bl.ocks.org/mbostock/3019563
-var margin = {top: 0, right: 10, bottom: 10, left: 10};
-var startW = 800, startH = 600;
-var width = startW - margin.left - margin.right;
-var height = startH - margin.top - margin.bottom;
-var nodes: any
+
+
 var links: any
 var node: any
 var link: any
-var shiftX = 0;
-var shiftY = 0;
-var zoom = d3.behavior.zoom()
 
 // tree defaults
 var scale = true; // if true, tree will be scaled by distance metric
@@ -67,23 +56,9 @@ var legendColorScale = d3.scale.linear().domain([0.5,1]).range([255,0])
 // tooltip
 
 
-var tip = d3.tip()
-    .attr('class', 'd3-tip')
-    .offset([0,20])
-var outerRadius = startW / 2,
-    innerRadius = outerRadius - 170;
 
-// setup radial tree
-var radialTree = d3.layout.cluster()
-    .size([360, innerRadius])
-    .children(function(d: any) { return d.branchset; })
 
 // setup rectangular tree
-var rectTree = d3.layout.cluster()
-    .children(function(node: any) {
-        return node.branchset
-    })
-    .size([height, width]);
 
 var duration = 1000;
 
@@ -102,8 +77,8 @@ export class TreeRenderer {
     colorScales: any
     mappingFile: any
     margin = {top: 0, right: 10, bottom: 10, left: 10};
-    startW = 800
-    startH = 600
+    startW = 1200
+    startH = 900
     width = this.startW - this.margin.left - this.margin.right;
     height = this.startH - this.margin.top - this.margin.bottom;
     nodes: any
@@ -146,7 +121,7 @@ export class TreeRenderer {
     
         // setup radial tree
         this.radialTree = d3.layout.cluster()
-            .size([360, innerRadius])
+            .size([360, this.innerRadius])
             .children(function(d: any) { return d.branchset; })
     
         // setup rectangular tree
@@ -194,32 +169,32 @@ export class TreeRenderer {
                 .attr("id","canvas")
     
         // NOTE: size of SVG and SVG g are updated in fitTree()
-        svg = tmp.append("div")
+        this.svg = tmp.append("div")
                 .attr("class", "col-sm-12")
                 .attr("id","tree")
             .append("svg:svg")
                 .attr("xmlns","http://www.w3.org/2000/svg")
                 .attr("id","SVGtree")
-                .call(zoom.on("zoom", () => panZoom(shiftX, shiftY)))
+                .call(this.zoom.on("zoom", () => panZoom(this.shiftX, this.shiftY)))
             .append("g") // svg g group is translated by fitTree()
                 .attr("id",'canvasSVG')
-                .attr("transform","translate(" + margin.left + "," + margin.top + ")")
+                .attr("transform","translate(" + this.margin.left + "," + this.margin.top + ")")
     
-        svg.append("g")
+        this.svg.append("g")
                 .attr("id","rulerSVG")
-        svg.append("g")
+        this.svg.append("g")
                 .attr("id","treeSVG")
     
     
         // generate intial layout and all tree elements
         d3.select("#canvasSVG")
         if (opts.treeType == 'rectangular') {
-            this.layoutTree(rectTree, newick, opts);
+            this.layoutTree(this.rectTree, newick, opts);
         } else if (opts.treeType == 'radial') {
-            this.layoutTree(radialTree, newick, opts);
+            this.layoutTree(this.radialTree, newick, opts);
         }
     
-        svg.call(tip);
+        this.svg.call(this.tip);
         callback(); // calls updateTree
     
     }
@@ -232,7 +207,7 @@ export class TreeRenderer {
         // adjust physical positioning
         if (options.typeChange || options.skipBranchLengthScaling != scale) {
     
-            this.layoutTree( options.treeType == 'rectangular' ? rectTree : radialTree, this.newick, options);
+            this.layoutTree( options.treeType == 'rectangular' ? this.rectTree : this.radialTree, this.newick, options);
     
             // reset rotation to 0 (rect) or to previous pos (radial)
             d3.select('#treeSVG').attr('transform', function(d: any) {
@@ -248,37 +223,37 @@ export class TreeRenderer {
     
         // adjust vertical scale
         if (options.treeType == 'rectangular') {
-            var xscale = scaleLeafSeparation(treeGlobalObject, rectTree, nodes, options.sliderScaleV); // this will update x-pos
+            var xscale = scaleLeafSeparation(treeGlobalObject, this.rectTree, this.nodes, options.sliderScaleV); // this will update x-pos
     
             // update ruler length
-            var treeH = getTreeBox(this.treeType, nodes).height + 32; // +32 extends rulers outside treeSVG
+            var treeH = getTreeBox(this.treeType, this.nodes).height + 32; // +32 extends rulers outside treeSVG
             d3.selectAll(".ruleGroup line")
-                .attr("y2", treeH + margin.top + margin.bottom) // TOD1O doesn't work quite right with large scale
+                .attr("y2", treeH + this.margin.top + this.margin.bottom) // TOD1O doesn't work quite right with large scale
     
             // scale vertical pos
-            svg.selectAll("g.node")
-                .data(nodes)
+            this.svg.selectAll("g.node")
+                .data(this.nodes)
                 .attr("transform", function(d: any) { return "translate(" + d.y + "," + d.x + ")"; });
-            svg.selectAll("path.link")
+            this.svg.selectAll("path.link")
                 .data(treeGlobalObject.links)
                 .attr("d", elbow);
         }
     
     
-        svg.selectAll("g.leaf circle")
+        this.svg.selectAll("g.leaf circle")
             .attr("r", options.sliderLeafR);
         this.orientTreeLabels();
     
     
         // toggle leaf labels
-        svg.selectAll('g.leaf.node text')
+        this.svg.selectAll('g.leaf.node text')
             .style('fill-opacity', options.skipLeafLabel? 1e-6 : 1 )
     
         // toggle distance labels
-        svg.selectAll('g.inner.node text')
+        this.svg.selectAll('g.inner.node text')
             .style('fill-opacity', options.skipDistanceLabel? 1e-6 : 1 )
     
-        svg.selectAll('g.leaf.node text')
+        this.svg.selectAll('g.leaf.node text')
             .text(function(d: any) {
                 return geneData && geneData[d.name] && geneData[d.name].GENE_NAME;
             });
@@ -296,13 +271,13 @@ export class TreeRenderer {
         d3.selectAll("g.ruleGroup").remove() // remove ruler
         var yscale = null
         var xscale = null
-        nodes = tree.nodes(this.newick);
-        if (!opts.skipBranchLengthScaling) { yscale = scaleBranchLengths(nodes, width); }
-        if (opts.treeType == 'rectangular') { xscale = scaleLeafSeparation(treeGlobalObject, tree, nodes); }
-        treeGlobalObject.links = tree.links(nodes);
+        this.nodes = tree.nodes(this.newick);
+        if (!opts.skipBranchLengthScaling) { yscale = scaleBranchLengths(this.nodes, this.width); }
+        if (opts.treeType == 'rectangular') { xscale = scaleLeafSeparation(treeGlobalObject, tree, this.nodes); }
+        treeGlobalObject.links = tree.links(this.nodes);
     
     
-        this.formatTree(nodes, treeGlobalObject.links, yscale, xscale, height, opts);
+        this.formatTree(this.nodes, treeGlobalObject.links, yscale, xscale, this.height, opts);
     }
 
     formatTree(nodes: any, links: any, yscale: any=null, xscale: any=null, height: any, opts: any) {
@@ -396,8 +371,8 @@ export class TreeRenderer {
                 } as any)
             
         d3.selectAll('.leaf')
-                .on('mouseover', tip.show)
-                .on('mouseout', tip.hide)
+                .on('mouseover', this.tip.show)
+                .on('mouseout', this.tip.hide)
     
         // node backgrounds
         node.append("rect")
@@ -436,7 +411,7 @@ export class TreeRenderer {
         node.append("text")
             .attr("class",function(d: any) { return d.children ? "distanceLabel" : "leafLabel" })
             .attr("dy", function(d: any) { return d.children ? -6 : 3 })
-            .text(function(d: any) { 
+            .text((d: any) => { 
                 if (d.children) {
                     if (d.length && d.length.toFixed(2) > 0.01) {
                         return d.length.toFixed(2);
@@ -445,7 +420,7 @@ export class TreeRenderer {
                     }
                 } else {
                     if (opts['leafText']) {
-                        return d.name + ' (' + mapParse.get(opts['leafText']).get(d.name) + ')';
+                        return d.name + ' (' + this.mapParse.get(opts['leafText']).get(d.name) + ')';
                     } else {
     
                         return d.name + ' (' + d.length + ')';
@@ -490,7 +465,7 @@ export class TreeRenderer {
                       .append('svg:line')
                         .attr("class", "rule")
                         .attr('y1', 0)
-                        .attr('y2', getTreeBox(this.treeType, nodes).height + margin.top + margin.bottom)
+                        .attr('y2', getTreeBox(this.treeType, nodes).height + this.margin.top + this.margin.bottom)
                         .attr('x1', yscale)
                         .attr('x2', yscale)
     
@@ -511,7 +486,7 @@ export class TreeRenderer {
     }
 
     updateLegend() {
-
+        const options = this.options
         // remove legend if one exists so we can update
         d3.selectAll("#legendID g").remove()
     
@@ -525,7 +500,7 @@ export class TreeRenderer {
     
             // update node styling
     
-            svg.selectAll('g.leaf.node circle')
+            this.svg.selectAll('g.leaf.node circle')
                 .transition()
                 .style('fill', function(d: any) {
                     return mapVals.get(d.name) ? dimColor(colorScale(mapVals.get(d.name))) : 'white'
@@ -535,15 +510,15 @@ export class TreeRenderer {
                 })
     
         } else if (options.leafColor == '') {
-            svg.selectAll('g.leaf.node circle')
+            this.svg.selectAll('g.leaf.node circle')
                 .transition()
                 .attr("style","");
         }
     
         // update leaf background
         if (options.backgroundColor != '') {
-            var colorScale = colorScales.get(options.backgroundColor) // color scale
-            var mapVals = mapParse.get(options.backgroundColor) // d3.map() obj with leaf name as key
+            var colorScale = this.colorScales.get(options.backgroundColor) // color scale
+            var mapVals = this.mapParse.get(options.backgroundColor) // d3.map() obj with leaf name as key
     
     
             // fill out legend
@@ -551,7 +526,7 @@ export class TreeRenderer {
             this.generateLegend(options.backgroundColor, mapVals, colorScale, 'rect');
     
             // update node background style
-            svg.selectAll('g.leaf.node rect')
+            this.svg.selectAll('g.leaf.node rect')
                 .transition()
                 .duration(500)
                 .attr("width", function(d: any) {
@@ -566,7 +541,7 @@ export class TreeRenderer {
                 .style('opacity',1)
         } else if (options.backgroundColor == '') {
     
-            svg.selectAll('g.leaf.node rect')
+            this.svg.selectAll('g.leaf.node rect')
                 .transition()
                 .duration(500)
                 .attr('width','0')
@@ -574,7 +549,7 @@ export class TreeRenderer {
         }
     
         if (options.backgroundColor != '' || options.leafColor != '') {
-            positionLegend(margin, zoom);
+            positionLegend(this.margin, this.zoom);
         }
     
          
@@ -583,7 +558,7 @@ export class TreeRenderer {
     }
     
     getGUIoptions() {
-
+        const options = this.options
         // set tree type if GUI was updated
         // by anything other than tree type
         // buttons
@@ -596,9 +571,9 @@ export class TreeRenderer {
         // mapping info here
     
     
-        if (typeof mappingFile != 'undefined') {
-            options.mapping = mapParse;
-            options.colorScale = colorScales;
+        if (typeof this.mappingFile != 'undefined') {
+            options.mapping = this.mapParse;
+            options.colorScale = this.colorScales;
         }
     
         if (options.treeType != this.treeType) {
@@ -618,7 +593,7 @@ export class TreeRenderer {
         // get slider vals
     
         options.sliderScaleV = 10; 
-        options.sliderLeafR = 50;
+        options.sliderLeafR = 5;
     
         // get dropdown values
         var leafColor, backgroundColor;
