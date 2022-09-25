@@ -7,6 +7,10 @@ import { addAngles } from "./utils/addAngles";
 import { formatTooltip } from "./utils/formatTooltip";
 import { range } from "./utils/range";
 import { getTreeBox } from "./utils/getTreeBox";
+import { scaleLeafSeparation } from "./utils/scaleLeafSeparation";
+import { dimColor } from "./utils/dimColor";
+import { positionLegend } from "./utils/positionLegend";
+import { panZoom } from "./utils/panZoom";
 
 
 declare var d3: {
@@ -89,75 +93,10 @@ var rectTree = d3.layout.cluster()
 
 var duration = 1000;
 
-// let mapParse: any
-/* Ensure leaf nodes are not overlapping
-
-Finds the smallest vertical distance between leaves
-and scales things to a minimum distance so that
-branches don't overlap.
-
-Note that this will update the node.x positions
-for all nodes found in passed var 'nodes' as well
-as update the global 'links' var.
-
-Parameters:
-===========
-- tree : d3.tree layout (cluster) 
-- nodes : d3.tree nodes
-- minSeparation : int (default: 22)
-                  mininum distance between leaf nodes
-
-Returns:
-========
-- xscale : d3.scale
-           scale for leaf height separation; given the
-           svg height, it will scale properly so leaf
-           nodes have minimum separation
-*/
-
-function scaleLeafSeparation(tree: any, nodes: any, minSeparation=22) {
-
-    var traverseTree = function(root: any, callback: any) {
-        callback(root);
-        if (root.children) {
-            for (var i = root.children.length - 1; i >= 0; i--){
-                traverseTree(root.children[i], callback)
-            };
-        }
-    }
-
-    // get all leaf X positions
-    let leafXpos: any[] = [];
-    traverseTree(nodes[0], function(node: any) {
-        if (!node.children) {
-            leafXpos.push(node.x);
-        }
-    });
-
-    // calculate leaf vertical distances
-    let leafXdist: any[] = [];
-    leafXpos = leafXpos.sort(function(a, b) { return a-b });
-    leafXpos.forEach( function(x,i) {
-        if (i + 1 != leafXpos.length) {
-            var dist = leafXpos[i + 1] - x;
-            if (dist) {
-                leafXdist.push(dist);
-            }
-        }
-    })
-
-    var xScale = d3.scale.linear()
-        .range([0, minSeparation])
-        .domain([0, d3.min(leafXdist)])
-
-    traverseTree(nodes[0], function(node: any) {
-        node.x = xScale(node.x)
-    })
-
-    links = tree.links(nodes);
-
-    return xScale;
+const treeGlobalObject = {
+    links
 }
+
 
 /* Master format tree function
 
@@ -197,7 +136,7 @@ function formatTree(nodes: any, links: any, yscale: any=null, xscale: any=null, 
 
     // set to global!
     link = d3.select('#treeSVG').selectAll("path.link")
-      .data(links)
+      .data(treeGlobalObject.links)
         .enter().append("path")
         .attr("class","link")
         .style("fill","none") // setting style inline otherwise AI doesn't render properly
@@ -513,62 +452,8 @@ function generateLegend(title: any, mapVals: any, colorScale: any, type: any) {
                 } else {
                     return '(' + counts.get(d) + ') ' + d; 
                 }
-                return undefined
             } as any)
 }
-
-
-
-/* 
-
-Will position the legend in the top/right corner
-of window.
-
-*/
-function positionLegend() {
-   
-    var yPos = (margin.top + 30) / zoom.scale(); // 20 to make room for title
-    var xPos = (d3.select("#legendID").node() as any).getBoundingClientRect().width;
-    d3.select("#legendID").attr("transform","translate(" + (window.innerWidth - xPos - 15) + "," + yPos + ")");
-
-}
-
-
-
-
-/* Ligten a color
-
-Utility for generating a lighter version
-of the given color
-
-Parameters:
-===========
-- colorName : str
-    html color name (http://html-color-codes.info/color-names/)
-
-Returns:
-========
-- RGB of the input color that has been lightened by 20% (in HSL)
-
-
-*/
-
-function dimColor(colorName: any) {
-
-    var c = d3.hsl(colorName);
-    c.l += 0.20;
-    c + "";
-    return c;
-
-}
-
-
-// function called when user interacts with plot to pan and zoom with mouse
-function panZoom() {
-    // TODO
-    d3.select('svg g').attr("transform", "translate(" + (d3.event.translate[0] + shiftX) + "," + (d3.event.translate[1] + shiftY) + ")" + " scale(" + d3.event.scale + ")")
-}
-
 
 /* 
 After rotating the tree, some of the radials may be oriented improperly,
@@ -719,7 +604,7 @@ function updateLegend() {
     }
 
     if (options.backgroundColor != '' || options.leafColor != '') {
-        positionLegend();
+        positionLegend(margin, zoom);
     }
 
      
@@ -865,7 +750,7 @@ function buildTree(div: any, newick: any, opts: any, callback: any) {
         .append("svg:svg")
             .attr("xmlns","http://www.w3.org/2000/svg")
             .attr("id","SVGtree")
-            .call(zoom.on("zoom", panZoom))
+            .call(zoom.on("zoom", () => panZoom(shiftX, shiftY)))
         .append("g") // svg g group is translated by fitTree()
             .attr("id",'canvasSVG')
             .attr("transform","translate(" + margin.left + "," + margin.top + ")")
@@ -908,11 +793,11 @@ function layoutTree(tree: any, newick: any, opts: any) {
     var xscale = null
     nodes = tree.nodes(newick);
     if (!opts.skipBranchLengthScaling) { yscale = scaleBranchLengths(nodes, width); }
-    if (opts.treeType == 'rectangular') { xscale = scaleLeafSeparation(tree, nodes); }
-    links = tree.links(nodes);
+    if (opts.treeType == 'rectangular') { xscale = scaleLeafSeparation(treeGlobalObject, tree, nodes); }
+    treeGlobalObject.links = tree.links(nodes);
 
 
-    formatTree(nodes, links, yscale, xscale, height, opts);
+    formatTree(nodes, treeGlobalObject.links, yscale, xscale, height, opts);
 }
 
 
@@ -949,7 +834,7 @@ function updateTree(options: any, geneData: any) {
 
     // adjust vertical scale
     if (options.treeType == 'rectangular') {
-        var xscale = scaleLeafSeparation(rectTree, nodes, options.sliderScaleV); // this will update x-pos
+        var xscale = scaleLeafSeparation(treeGlobalObject, rectTree, nodes, options.sliderScaleV); // this will update x-pos
 
         // update ruler length
         var treeH = getTreeBox(treeType, nodes).height + 32; // +32 extends rulers outside treeSVG
@@ -961,7 +846,7 @@ function updateTree(options: any, geneData: any) {
             .data(nodes)
             .attr("transform", function(d: any) { return "translate(" + d.y + "," + d.x + ")"; });
         svg.selectAll("path.link")
-            .data(links)
+            .data(treeGlobalObject.links)
             .attr("d", elbow);
     }
 
