@@ -1,7 +1,17 @@
 :host {
-    min-width: 80vw;
+    width: 100%;
 }
 
 .mat-radio-button ~ .mat-radio-button {
     margin-left: 16px;
   }
+
+.container {
+    display: flex;
+}
+.chart {
+    width: 100%;
+}
+.card {
+    margin: 10px;
+}

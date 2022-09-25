@@ -678,8 +678,7 @@ function fitTree() {
     } else {
         var content = d3.select('#treeSVG').node().getBoundingClientRect();
         var root = d3.select('.root').node().getBoundingClientRect();
-        console.log(content, d3.select('#treeSVG').node().getBoundingClientRect())
-    }
+x    }
 
     var zoomScale = d3.min([
         (jQuery('#gui').outerWidth() - margin.left - margin.right) / content.width, 
@@ -1559,7 +1558,6 @@ function updateLegend() {
         svg.selectAll('g.leaf.node circle')
             .transition()
             .style('fill', function(d) {
-                //console.log(d.name, mapVals.get(d.name), colorScale(mapVals.get(d.name)))
                 return mapVals.get(d.name) ? dimColor(colorScale(mapVals.get(d.name))) : 'white'
             })
             .style('stroke', function(d) {

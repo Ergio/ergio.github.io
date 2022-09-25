@@ -1,1 +1,11 @@
-<p>legend-widget works!</p>
+
+<mat-card class="legend-card">
+    <mat-card-content>
+        <h4>BIOSYNTHETIC_CLASSES:</h4>
+        <section *ngIf="formGroup" class="example-section" [formGroup]="formGroup">
+            <p class="checkbox-row" *ngFor="let option of featureOptions; index as i;">
+                <mat-checkbox [formControlName]="option">{{procesedFeatureOptions[i] || 'Not defined'}}</mat-checkbox>
+            </p>
+        </section>
+    </mat-card-content>
+</mat-card>

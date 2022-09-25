@@ -98,8 +98,6 @@ function init(dat, div, options) {
     // process Newick tree
     newick = processNewick(dat);
 
-    console.log(newick)
-
     // render tree
     buildTree(div, newick, options, function() { updateTree(); });
 

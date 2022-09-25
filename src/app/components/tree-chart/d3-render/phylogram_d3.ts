@@ -1,5 +1,3 @@
-import { colorbrewer } from "./colorbrewer.min"
-
 import * as D3 from "d3";
 import { step } from "./utils/step";
 import { autoSort } from "./utils/autoSort";
@@ -8,6 +6,7 @@ import { elbow } from "./utils/elbow";
 import { addAngles } from "./utils/addAngles";
 import { formatTooltip } from "./utils/formatTooltip";
 import { range } from "./utils/range";
+import { getTreeBox } from "./utils/getTreeBox";
 
 
 declare var d3: {
@@ -115,6 +114,7 @@ Returns:
            svg height, it will scale properly so leaf
            nodes have minimum separation
 */
+
 function scaleLeafSeparation(tree: any, nodes: any, minSeparation=22) {
 
     var traverseTree = function(root: any, callback: any) {
@@ -150,7 +150,6 @@ function scaleLeafSeparation(tree: any, nodes: any, minSeparation=22) {
         .range([0, minSeparation])
         .domain([0, d3.min(leafXdist)])
 
-    // update node x pos & links
     traverseTree(nodes[0], function(node: any) {
         node.x = xScale(node.x)
     })
@@ -165,7 +164,6 @@ function scaleLeafSeparation(tree: any, nodes: any, minSeparation=22) {
 Parameters:
 ===========
 - nodes : d3 tree nodes
-- links : d3 tree links
 - yscale : quantitative scale
            horizontal scaling factor for distance
            if null, ruler is not drawn
@@ -320,6 +318,7 @@ function formatTree(nodes: any, links: any, yscale: any=null, xscale: any=null, 
                 if (opts['leafText']) {
                     return d.name + ' (' + mapParse.get(opts['leafText']).get(d.name) + ')';
                 } else {
+
                     return d.name + ' (' + d.length + ')';
                 }
             }
@@ -362,9 +361,10 @@ function formatTree(nodes: any, links: any, yscale: any=null, xscale: any=null, 
                   .append('svg:line')
                     .attr("class", "rule")
                     .attr('y1', 0)
-                    .attr('y2', getTreeBox().height + margin.top + margin.bottom)
+                    .attr('y2', getTreeBox(treeType, nodes).height + margin.top + margin.bottom)
                     .attr('x1', yscale)
                     .attr('x2', yscale)
+
 
 
         } else if (opts.treeType == 'radial') {  
@@ -381,20 +381,6 @@ function formatTree(nodes: any, links: any, yscale: any=null, xscale: any=null, 
     }
 }
 
-// get BoundingClientRect of tree
-function getTreeBox() {
-
-    if (treeType == 'rectangular') {
-        var tmp_height = d3.extent(nodes.map(function(d: any) { return d.x }));
-        var tmp_width = d3.extent(nodes.map(function(d: any) { return d.y })); // note width will be off since it doesn't take into account the label text
-        return {'height':tmp_height[1] - tmp_height[0], 'width':tmp_width[1] - tmp_width[0] };
-    } else {
-
-        return (d3.select('#treeSVG').node() as any).getBoundingClientRect();
-    }
-
-
-}
 
 
 /* Generate legend
@@ -769,7 +755,6 @@ options obj:
 */
 
 export function renderTree(dat: any, div: any, options: any, geneData: any) {
-    console.log(geneData)
     geneDataObj.geneData = geneData
     svg = undefined
     options = options;
@@ -819,8 +804,6 @@ export function renderTree(dat: any, div: any, options: any, geneData: any) {
 
     // process Newick tree
     newick = dat
-
-    console.log(newick)
 
     // render tree
     buildTree(div, newick, options, function() { updateTree(options, geneDataObj.geneData); });
@@ -969,7 +952,7 @@ function updateTree(options: any, geneData: any) {
         var xscale = scaleLeafSeparation(rectTree, nodes, options.sliderScaleV); // this will update x-pos
 
         // update ruler length
-        var treeH = getTreeBox().height + 32; // +32 extends rulers outside treeSVG
+        var treeH = getTreeBox(treeType, nodes).height + 32; // +32 extends rulers outside treeSVG
         d3.selectAll(".ruleGroup line")
             .attr("y2", treeH + margin.top + margin.bottom) // TOD1O doesn't work quite right with large scale
 
