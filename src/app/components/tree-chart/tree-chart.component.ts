@@ -7,6 +7,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatRadioModule } from '@angular/material/radio';
 import { LegendWidgetComponent } from '../legend-widget/legend-widget.component';
 import { CommonModule } from '@angular/common';
+import { TreeRenderer } from './d3-render/tree-render';
 
 @Component({
   selector: 'app-tree-chart',
@@ -32,7 +33,10 @@ export class TreeChartComponent implements AfterViewInit {
   ) {}
 
   ngAfterViewInit(): void {
-    renderTree(this.treeDataObject, '#' + this.treeType, {treeType: this.treeType}, this.geneData)
+    const treeRenderer = new TreeRenderer()
+
+    treeRenderer.renderTree(this.treeDataObject, '#' + this.treeType, {treeType: this.treeType}, this.geneData)
+    // renderTree
   }
 
   changeTreeType(e: any) {

@@ -66,10 +66,6 @@ var scale = true; // if true, tree will be scaled by distance metric
 // range is RBG
 var legendColorScale = d3.scale.linear().domain([0.5,1]).range([255,0])
 
-var geneDataObj: any = {
-    geneData: {}
-}
-
 // tooltip
 
 
@@ -94,7 +90,9 @@ var rectTree = d3.layout.cluster()
 var duration = 1000;
 
 const treeGlobalObject = {
-    links
+    links, 
+    geneData: {}
+
 }
 
 
@@ -452,6 +450,7 @@ function generateLegend(title: any, mapVals: any, colorScale: any, type: any) {
                 } else {
                     return '(' + counts.get(d) + ') ' + d; 
                 }
+                return undefined
             } as any)
 }
 
@@ -640,7 +639,7 @@ options obj:
 */
 
 export function renderTree(dat: any, div: any, options: any, geneData: any) {
-    geneDataObj.geneData = geneData
+    treeGlobalObject.geneData = geneData
     svg = undefined
     options = options;
     mapParse= undefined
@@ -691,7 +690,7 @@ export function renderTree(dat: any, div: any, options: any, geneData: any) {
     newick = dat
 
     // render tree
-    buildTree(div, newick, options, function() { updateTree(options, geneDataObj.geneData); });
+    buildTree(div, newick, options, function() { updateTree(options, treeGlobalObject.geneData); });
 
 
 }
@@ -875,5 +874,439 @@ function updateTree(options: any, geneData: any) {
     } else {
         d3.select('svg').attr("viewBox", "0 0 " + parseInt(window.innerWidth as any) + " " + parseInt(window.innerHeight as any)); // set viewbox
     }
+
+}
+
+
+class TreeRenderer {
+    svg: any
+    options = {} as any
+    mapParse: any
+    colorScales: any
+    mappingFile: any
+    margin = {top: 0, right: 10, bottom: 10, left: 10};
+    startW = 800
+    startH = 600
+    width = this.startW - this.margin.left - this.margin.right;
+    height = this.startH - this.margin.top - this.margin.bottom;
+    nodes: any
+    links: any
+    node: any
+    link: any
+    newick: any
+    shiftX = 0;
+    shiftY = 0;
+    zoom = d3.behavior.zoom()
+    treeType = 'rectangular'
+    scale = true
+    legendColorScale = d3.scale.linear().domain([0.5,1]).range([255,0])
+    tip = d3.tip()
+        .attr('class', 'd3-tip')
+        .offset([0,20])
+    outerRadius = this.startW / 2
+    innerRadius = this.outerRadius - 170;
+    radialTree = d3.layout.cluster()
+        .size([360, this.innerRadius])
+        .children(function(d: any) { return d.branchset; })
+    rectTree = d3.layout.cluster()
+        .children(function(node: any) {
+            return node.branchset
+        })
+        .size([this.height, this.width]);
+    duration = 1000;
+    treeGlobalObject = {
+        links, 
+        geneData: {}
+    }
+
+    constructor() {}
+
+    renderTree(dat: any, div: any, options: any, geneData: any) {
+        this.treeGlobalObject.geneData = geneData
+        this.options = options;
+        this.shiftX = 1;
+        this.shiftY = 1;
+    
+        // setup radial tree
+        this.radialTree = d3.layout.cluster()
+            .size([360, innerRadius])
+            .children(function(d: any) { return d.branchset; })
+    
+        // setup rectangular tree
+        this.rectTree = d3.layout.cluster()
+            .children(function(node: any) {
+                return node.branchset
+            })
+            .size([this.height, this.width]);
+    
+
+        this.tip = d3.tip()
+        .attr('class', 'd3-tip')
+        .offset([0,20])
+        .html(function(d: any) {
+            return formatTooltip(d, geneData);
+        })
+    
+        // process Newick tree
+        this.newick = dat
+    
+        // render tree
+        this.buildTree(div, this.newick, options, () => this.updateTree(options, geneData));
+    }
+
+    buildTree(div: any, newick: any, opts: any, callback: any) {
+
+        // check opts, if not set, set to default
+        if (!('treeType' in opts)) {
+            opts['treeType'] = treeType;
+        } else {
+            treeType = opts.treeType;
+        }
+        if (!('skipBranchLengthScaling' in opts)) {
+            opts['skipBranchLengthScaling'] = !scale;
+        } else {
+            scale = opts.skipBranchLengthScaling;
+        }
+    
+        // add bootstrap container class
+        d3.select(div)
+            .attr("class","container-fluid render")
+    
+        var tmp = d3.select(div).append("div")
+                .attr("class","row")
+                .attr("id","canvas")
+    
+        // NOTE: size of SVG and SVG g are updated in fitTree()
+        svg = tmp.append("div")
+                .attr("class", "col-sm-12")
+                .attr("id","tree")
+            .append("svg:svg")
+                .attr("xmlns","http://www.w3.org/2000/svg")
+                .attr("id","SVGtree")
+                .call(zoom.on("zoom", () => panZoom(shiftX, shiftY)))
+            .append("g") // svg g group is translated by fitTree()
+                .attr("id",'canvasSVG')
+                .attr("transform","translate(" + margin.left + "," + margin.top + ")")
+    
+        svg.append("g")
+                .attr("id","rulerSVG")
+        svg.append("g")
+                .attr("id","treeSVG")
+    
+    
+        // generate intial layout and all tree elements
+        d3.select("#canvasSVG")
+        if (opts.treeType == 'rectangular') {
+            layoutTree(rectTree, newick, opts);
+        } else if (opts.treeType == 'radial') {
+            layoutTree(radialTree, newick, opts);
+        }
+    
+        svg.call(tip);
+        callback(); // calls updateTree
+    
+    }
+
+    updateTree(options: any, geneData: any) {
+
+        getGUIoptions(); // set our globals
+    
+    
+        // adjust physical positioning
+        if (options.typeChange || options.skipBranchLengthScaling != scale) {
+    
+            layoutTree( options.treeType == 'rectangular' ? rectTree : radialTree, newick, options);
+    
+            // reset rotation to 0 (rect) or to previous pos (radial)
+            d3.select('#treeSVG').attr('transform', function(d: any) {
+                if (options.treeType == 'rectangular') {
+                    return 'rotate(0)';
+                } else {
+                    return 'rotate(0)';
+                }
+            })
+    
+            scale = options.skipBranchLengthScaling;
+        }
+    
+        // adjust vertical scale
+        if (options.treeType == 'rectangular') {
+            var xscale = scaleLeafSeparation(treeGlobalObject, rectTree, nodes, options.sliderScaleV); // this will update x-pos
+    
+            // update ruler length
+            var treeH = getTreeBox(treeType, nodes).height + 32; // +32 extends rulers outside treeSVG
+            d3.selectAll(".ruleGroup line")
+                .attr("y2", treeH + margin.top + margin.bottom) // TOD1O doesn't work quite right with large scale
+    
+            // scale vertical pos
+            svg.selectAll("g.node")
+                .data(nodes)
+                .attr("transform", function(d: any) { return "translate(" + d.y + "," + d.x + ")"; });
+            svg.selectAll("path.link")
+                .data(treeGlobalObject.links)
+                .attr("d", elbow);
+        }
+    
+    
+        svg.selectAll("g.leaf circle")
+            .attr("r", options.sliderLeafR);
+        orientTreeLabels();
+    
+    
+        // toggle leaf labels
+        svg.selectAll('g.leaf.node text')
+            .style('fill-opacity', options.skipLeafLabel? 1e-6 : 1 )
+    
+        // toggle distance labels
+        svg.selectAll('g.inner.node text')
+            .style('fill-opacity', options.skipDistanceLabel? 1e-6 : 1 )
+    
+        svg.selectAll('g.leaf.node text')
+            .text(function(d: any) {
+                return geneData && geneData[d.name] && geneData[d.name].GENE_NAME;
+            });
+    
+    
+        if ('mapping' in options) {
+            updateLegend();  // will reposition legend as well
+        } else {
+            d3.select('svg').attr("viewBox", "0 0 " + parseInt(window.innerWidth as any) + " " + parseInt(window.innerHeight as any)); // set viewbox
+        }
+    
+    }
+    
+    layoutTree(tree: any, newick: any, opts: any) {
+        d3.selectAll("g.ruleGroup").remove() // remove ruler
+        var yscale = null
+        var xscale = null
+        nodes = tree.nodes(newick);
+        if (!opts.skipBranchLengthScaling) { yscale = scaleBranchLengths(nodes, width); }
+        if (opts.treeType == 'rectangular') { xscale = scaleLeafSeparation(treeGlobalObject, tree, nodes); }
+        treeGlobalObject.links = tree.links(nodes);
+    
+    
+        formatTree(nodes, treeGlobalObject.links, yscale, xscale, height, opts);
+    }
+
+    formatTree(nodes: any, links: any, yscale: any=null, xscale: any=null, height: any, opts: any) {
+
+        /* Format links (branches) of tree
+        formatLinks
+    
+        Will render the lines connecting nodes (links)
+        with right angle elbows.
+    
+        Parameters:
+        ===========
+        - svg : svg selctor
+                svg HTML element into which to render
+        - links : d3.tree.links
+        - opts : obj
+                    tree opts, see documentation for keys
+    
+    
+        */
+    
+        // set to global!
+        link = d3.select('#treeSVG').selectAll("path.link")
+          .data(treeGlobalObject.links)
+            .enter().append("path")
+            .attr("class","link")
+            .style("fill","none") // setting style inline otherwise AI doesn't render properly
+            .style("stroke","#aaa")
+            .style("stroke-width","2px")
+    
+        d3.selectAll('.link')
+            .attr("d", function(d: any) { return opts.tree == 'rectangular' ? elbow(d) : step(d.source.x, d.source.y, d.target.x, d.target.y); })
+    
+    
+        /* Render and format tree nodes
+        formatNodes
+    
+        Will render all tree nodes as well as format them
+        with color, shape, size; additionally all leaf
+        nodes and internal nodes will get labels by default.
+    
+        A node is a generalized group which can contain shapes
+        (circle) as well as labels (text).
+    
+        Parameters:
+        ===========
+        - svg : svg selctor
+                svg HTML element into which to render
+        - nodes : d3.tree.nodes
+        - opts : obj
+                    tree opts, see documentation for keys
+    
+    
+        */
+    
+        // set default leaf radius if not present
+        if (!('sliderLeafR' in opts)) {
+            opts['sliderLeafR'] = 5;
+        }
+    
+        node = d3.select('#treeSVG').selectAll("g.node")
+                .data(nodes)
+              .enter().append("g")
+                .attr("class", function(n: any) {
+                    if (n.children) {
+                        if (n.depth == 0) {
+                            return "root node"
+                        } else {
+                            return "inner node"
+                        }
+                    } else {
+                        return "leaf node"
+                    }
+                })
+                .attr("id", function(d: any) {
+                    if (!d.children) {
+                        var name = d.name.replace(new RegExp('\\.', 'g'), '_');
+                        return 'leaf_' + name;
+                    }
+                    return undefined
+                } as any)
+    
+        d3.selectAll('.node')
+                .attr("transform", function(d: any) {
+                    if (opts.treeType == 'rectangular') {
+                        return "translate(" + d.y + "," + d.x + ")";
+                    } else if (opts.treeType == 'radial') {
+                        return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")";
+                    }
+                    return undefined
+                } as any)
+            
+        d3.selectAll('.leaf')
+                .on('mouseover', tip.show)
+                .on('mouseout', tip.hide)
+    
+        // node backgrounds
+        node.append("rect")
+          .attr('width', 0 ) // width is set when choosing background color
+          .attr('height', 10 + opts.sliderLeafR * 2) 
+          .attr('y', -opts.sliderLeafR - 5)
+          .attr("opacity", function(d: any) { return d.children ? 1e-6 : 1 });
+    
+        // node circles
+        node.append("circle")
+            .attr("r", function(d: any) { 
+                if (!d.children || d.depth == 0) {
+                    return opts.sliderLeafR;
+                } else {
+                    return 3;
+                }
+            });
+    
+    
+        d3.selectAll('.inner.node circle')
+            .on("mouseover", function(e: any) { 
+                d3.select(e)
+                    .transition()
+                    .duration(100)
+                    .attr("r",6); 
+            })
+            .on("mouseout", function(e: any) { 
+                d3.select(e)
+                    .transition()
+                    .duration(100)
+                    .attr("r",3); 
+            })
+    
+    
+        // node label
+        node.append("text")
+            .attr("class",function(d: any) { return d.children ? "distanceLabel" : "leafLabel" })
+            .attr("dy", function(d: any) { return d.children ? -6 : 3 })
+            .text(function(d: any) { 
+                if (d.children) {
+                    if (d.length && d.length.toFixed(2) > 0.01) {
+                        return d.length.toFixed(2);
+                    } else {
+                        return '';
+                    }
+                } else {
+                    if (opts['leafText']) {
+                        return d.name + ' (' + mapParse.get(opts['leafText']).get(d.name) + ')';
+                    } else {
+    
+                        return d.name + ' (' + d.length + ')';
+                    }
+                }
+            })
+            .attr("opacity", function(d: any) { return opts.skipLabels ? 1e-6 : 1; })
+    
+        orientTreeLabels(); 
+    
+    
+    
+        /* Render and format background rules
+        formatRuler
+    
+        Parameters:
+        ===========
+        - id : id selector
+               id (with #) into which to render ruler
+        - yscale : quantitative scale
+                   horizontal scaling factor for distance
+        - xscale : quantitative scale
+                   vertical scale
+        - height : int
+                   height of svg
+        - opts : obj
+                    tree opts, expects a key hideRuler;
+                    if true, rules won't be drawn. also
+                    expects a key treeType (rectangular/radial)
+    
+        */
+    
+    
+        if (!opts.hideRuler && yscale != null) {
+    
+            if (opts.treeType == 'rectangular') {
+    
+                let rulerG = d3.select('#rulerSVG').selectAll("g")
+                        .data(yscale.ticks(10))
+                      .enter().append("g")
+                        .attr("class", "ruleGroup")
+                      .append('svg:line')
+                        .attr("class", "rule")
+                        .attr('y1', 0)
+                        .attr('y2', getTreeBox(treeType, nodes).height + margin.top + margin.bottom)
+                        .attr('x1', yscale)
+                        .attr('x2', yscale)
+    
+    
+    
+            } else if (opts.treeType == 'radial') {  
+    
+                let rulerG = d3.select('#rulerSVG').selectAll("g")
+                        .data(yscale.ticks(10))
+                      .enter().append("g")
+                        .attr("class", "ruleGroup")
+                      .append('circle')
+                        .attr("class","rule")
+                        .attr('r', yscale);
+    
+            }
+        }
+    }
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }
