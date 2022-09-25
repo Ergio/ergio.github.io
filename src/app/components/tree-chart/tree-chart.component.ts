@@ -29,7 +29,7 @@ import { FormsModule } from '@angular/forms';
 export class TreeChartComponent implements AfterViewInit {
   treeDataObject = jsonData1
   geneData = geneData
-  treeType = 'rectangular'
+  treeType = 'radial'
 
   hideLabels = true;
   treeRenderer = new TreeRenderer()
