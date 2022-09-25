@@ -1,10 +1,22 @@
 
 <mat-card class="legend-card">
     <mat-card-content>
-        <h4>BIOSYNTHETIC_CLASSES:</h4>
+        <!-- <h4>BIOSYNTHETIC_CLASSES:</h4> -->
+        <mat-form-field appearance="outline">
+        <mat-label>Feature</mat-label>
+        <mat-select (selectionChange)="onFeatureChange($event)" [(value)]="selectedFeature">
+            <mat-option *ngFor="let feature of features" [value]="feature">
+            {{feature}}
+            </mat-option>
+        </mat-select>
+        </mat-form-field>
         <section *ngIf="formGroup" class="example-section" [formGroup]="formGroup">
             <p class="checkbox-row" *ngFor="let option of featureOptions; index as i;">
-                <mat-checkbox [formControlName]="option">{{procesedFeatureOptions[i] || 'Not defined'}}</mat-checkbox>
+                <mat-checkbox [formControlName]="option">
+                    <span class="count">({{procesedFeatureOptionsLength[i]}})</span>
+                    <span>{{procesedFeatureOptions[i] || 'Not defined'}}</span>
+                    
+                </mat-checkbox>
             </p>
         </section>
     </mat-card-content>

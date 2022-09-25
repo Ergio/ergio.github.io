@@ -1,13 +1,14 @@
 import { AfterViewInit, Component, ChangeDetectorRef } from '@angular/core';
 import { jsonData1 } from './tree-data/json_data_1';
 import { geneData } from './tree-data/xlsx';
-import { renderTree } from './d3-render/phylogram_d3';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatRadioModule } from '@angular/material/radio';
+import {MatCheckboxModule} from '@angular/material/checkbox';
 import { LegendWidgetComponent } from '../legend-widget/legend-widget.component';
 import { CommonModule } from '@angular/common';
 import { TreeRenderer } from './d3-render/tree-render';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-tree-chart',
@@ -19,7 +20,9 @@ import { TreeRenderer } from './d3-render/tree-render';
     MatCardModule,
     MatButtonModule,
     MatRadioModule,
-    LegendWidgetComponent
+    MatCheckboxModule,
+    LegendWidgetComponent,
+    FormsModule 
     
   ]
 })
@@ -28,27 +31,28 @@ export class TreeChartComponent implements AfterViewInit {
   geneData = geneData
   treeType = 'rectangular'
 
+  hideLabels = true;
+  treeRenderer = new TreeRenderer()
+
   constructor(
     private cd: ChangeDetectorRef
   ) {}
 
   ngAfterViewInit(): void {
-    const treeRenderer = new TreeRenderer()
 
-    treeRenderer.renderTree(this.treeDataObject, '#' + this.treeType, {treeType: this.treeType}, this.geneData)
+    this.treeRenderer.renderTree(this.treeDataObject, '#' + this.treeType, {treeType: this.treeType}, this.geneData)
     // renderTree
   }
 
   changeTreeType(e: any) {
     this.treeType = e.value
-    const treeRenderer = new TreeRenderer()
 
     setTimeout(() => {
       if (e.value === 'rectangular') {
-        treeRenderer.renderTree(this.treeDataObject, '#' + e.value, {treeType: e.value}, this.geneData)
+        this.treeRenderer.renderTree(this.treeDataObject, '#' + e.value, {treeType: e.value}, this.geneData)
       }
       if (e.value === 'radial') {
-        treeRenderer.renderTree(this.treeDataObject, '#' + e.value, {treeType: e.value}, this.geneData)
+        this.treeRenderer.renderTree(this.treeDataObject, '#' + e.value, {treeType: e.value}, this.geneData)
       }
       this.cd.markForCheck()
       this.cd.detectChanges()
@@ -56,7 +60,10 @@ export class TreeChartComponent implements AfterViewInit {
   }
 
   onSelectOptions(e: any) {
-    console.log(e)
+    this.treeRenderer.selectLeafs(e)
   }
 
+  onHideLabels() {
+    this.treeRenderer.hideLabels(this.hideLabels)
+  }
 }

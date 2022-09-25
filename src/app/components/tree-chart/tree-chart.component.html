@@ -1,20 +1,29 @@
 
 
-<mat-card class="card">
-    <mat-radio-group value="rectangular" (change)="changeTreeType($event)" aria-label="Select an option">
-        <p><mat-radio-button value="radial">radial</mat-radio-button></p>
-        <p><mat-radio-button value="rectangular">rectangular</mat-radio-button></p>
-    </mat-radio-group>
-</mat-card>
-
 <div class="container">
     <mat-card class="chart card">
         <mat-card-content>
-            <div *ngIf="treeType == 'radial'" id='radial'></div>
             <div *ngIf="treeType == 'rectangular'" id='rectangular'></div>
+            <div *ngIf="treeType == 'radial'" id='radial'></div>
         </mat-card-content>
     </mat-card>
 
-    <app-legend-widget (selectOptions)="onSelectOptions($event)" class="card" [legendData]="geneData"></app-legend-widget>
+    <div class="card">
+        <mat-card class="">
+            <mat-card-content>
+
+                <mat-radio-group value="rectangular" (change)="changeTreeType($event)" aria-label="Select an option">
+                    <p><mat-radio-button value="radial">RADIAL</mat-radio-button></p>
+                    <p><mat-radio-button value="rectangular">RECTANGULAR</mat-radio-button></p>
+                </mat-radio-group>
+                <p>
+                    <mat-checkbox (change)="onHideLabels()" [(ngModel)]="hideLabels">Hide labels(better performance)</mat-checkbox>
+                </p>
+            </mat-card-content>
+        </mat-card>
+
+        <app-legend-widget *ngIf="treeType == 'rectangular'" (selectOptions)="onSelectOptions($event)" class="card" [legendData]="geneData"></app-legend-widget>
+        <app-legend-widget *ngIf="treeType == 'radial'" (selectOptions)="onSelectOptions($event)" class="card" [legendData]="geneData"></app-legend-widget>
+    </div>
 </div>
 

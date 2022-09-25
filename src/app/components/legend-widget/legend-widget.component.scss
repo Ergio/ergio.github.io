@@ -13,6 +13,12 @@ h4 {
 
 .legend-card {
     overflow: scroll;
-    max-width: 300px;
+    max-width: 250px;
     height: 500px;
+}
+
+.count {
+    font-size: 10px;
+    columns: #aaa;
+    padding-right: 4px;
 }
