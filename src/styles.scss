@@ -169,7 +169,14 @@ saving SVG
     content: none;
 }
 
-/* hide scrolls bar since everything is fit to screen */
-body {
-    // overflow: hidden;
+// tree chart
+.container-fluid {
+    height: 100%;
+
+    .row {
+        min-height: 100%;
+        .col-sm-12 {
+            min-height: 100%;
+        }
+    }
 }

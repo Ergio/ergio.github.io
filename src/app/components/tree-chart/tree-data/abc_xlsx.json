@@ -1,4 +1,4 @@
-export const geneData = {
+{
     "g1": {
         "CLUSTER": "?",
         "ORGANISM": "Saccharopolyspora erythraea NRRL 2338",
