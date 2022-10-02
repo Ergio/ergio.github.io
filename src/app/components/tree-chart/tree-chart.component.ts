@@ -15,6 +15,17 @@ import mfsDataXlsx from './tree-data/mfs_xlsx.json';
 import abcData from './tree-data/abc.json';
 import abcDataXlsx from './tree-data/abc_xlsx.json';
 
+const dataMap = {
+  abc: {
+    treeData: abcData,
+    description: abcDataXlsx,
+  },
+  mfs: {
+    treeData: mfsData,
+    description: mfsDataXlsx,
+  }
+}
+
 @Component({
   selector: 'app-tree-chart',
   templateUrl: './tree-chart.component.html',
@@ -38,8 +49,10 @@ export class TreeChartComponent implements AfterViewInit {
   @Input() data!: any
   @Input() dataXlsx!: any
 
-  treeDataObject = abcData
-  geneData = abcDataXlsx
+  dataType: 'abc' | 'mfs' = 'abc'
+
+  treeDataObject:any = dataMap[this.dataType].treeData
+  geneData:any =  dataMap[this.dataType].description
 
   treeType = 'radial'
 
@@ -51,18 +64,21 @@ export class TreeChartComponent implements AfterViewInit {
   ) { }
 
   ngAfterViewInit(): void {
-    this.rerender()
+
+  
+    this.rerender(this.treeDataObject, this.geneData)
   }
 
-  rerender() {
-    this.treeRenderer.renderTree(this.treeDataObject, '#tree-chart', { treeType: this.treeType }, this.geneData)
+  rerender(treeData: any, geneData: any) {
+    this.treeRenderer.renderTree(treeData, '#tree-chart', { treeType: this.treeType }, geneData)
   }
 
   changeTreeType(e: any) {
     if (this.treeType !== e.value) {
       this.treeType = e.value
       this.treeRenderer = new TreeRenderer()
-      this.rerender()
+      this.geneData = {...this.geneData}
+      this.rerender(this.treeDataObject, this.geneData)
     }
   }
 
@@ -72,5 +88,15 @@ export class TreeChartComponent implements AfterViewInit {
 
   onHideLabels() {
     this.treeRenderer.hideLabels(this.hideLabels)
+  }
+
+  changeData(e: any) {
+    if(e.value !== this.dataType) {
+      this.dataType = e.value
+      this.treeDataObject = dataMap[this.dataType].treeData
+      this.geneData =  dataMap[this.dataType].description
+
+      this.rerender(this.treeDataObject, this.geneData)
+    }
   }
 }

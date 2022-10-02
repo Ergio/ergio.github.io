@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output } from "@angular/core";
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { MatCardModule } from "@angular/material/card";
 import {MatCheckboxModule} from '@angular/material/checkbox';
@@ -12,7 +12,7 @@ import {MatSelectModule} from '@angular/material/select';
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, MatCheckboxModule, MatCardModule, MatSelectModule]
 })
-export class LegendWidgetComponent implements OnInit {
+export class LegendWidgetComponent implements OnInit, OnChanges {
 
 
   @Input() legendData: any
@@ -33,7 +33,10 @@ export class LegendWidgetComponent implements OnInit {
 
   ngOnInit(): void {
     this.init()
+  }
 
+  ngOnChanges(): void {
+    this.init()
   }
 
   onFeatureChange(e: any) {

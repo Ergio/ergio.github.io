@@ -1,7 +1,6 @@
 
-<mat-card class="legend-card">
+<mat-card *ngIf="legendData" class="legend-card">
     <mat-card-content>
-        <!-- <h4>BIOSYNTHETIC_CLASSES:</h4> -->
         <mat-form-field appearance="outline">
         <mat-label>Feature</mat-label>
         <mat-select (selectionChange)="onFeatureChange($event)" [(value)]="selectedFeature">

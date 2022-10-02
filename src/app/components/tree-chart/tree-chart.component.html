@@ -1,4 +1,5 @@
-<div class="container">
+<h2 style="margin: 0; text-align: center">Phylogenetic tree of the transporters</h2>
+<div class="container" *ngIf="geneData">
     <mat-card class="chart card">
         <mat-card-content>
             <div id='tree-chart'></div>
@@ -6,21 +7,36 @@
     </mat-card>
 
     <div class="card">
-        <mat-card class="">
+        <mat-card class="sub-card">
             <mat-card-content>
-
-                <mat-radio-group value="radial" (change)="changeTreeType($event)" aria-label="Select an option">
-                    <p><mat-radio-button value="radial">RADIAL</mat-radio-button></p>
-                    <p><mat-radio-button value="rectangular">RECTANGULAR</mat-radio-button></p>
+                <mat-radio-group [value]="dataType" (change)="changeData($event)">
+                    <p>
+                        <mat-radio-button value="abc">ABC</mat-radio-button>
+                    </p>
+                    <p>
+                        <mat-radio-button value="mfs">MFS</mat-radio-button>
+                    </p>
                 </mat-radio-group>
-                <p>
-                    <mat-checkbox (change)="onHideLabels()" [(ngModel)]="hideLabels">Hide labels(better performance)</mat-checkbox>
-                </p>
             </mat-card-content>
         </mat-card>
 
-        <app-legend-widget *ngIf="treeType == 'rectangular'" (selectOptions)="onSelectOptions($event)" class="card" [legendData]="geneData"></app-legend-widget>
-        <app-legend-widget *ngIf="treeType == 'radial'" (selectOptions)="onSelectOptions($event)" class="card" [legendData]="geneData"></app-legend-widget>
+        <mat-card class="sub-card">
+            <mat-card-content>
+                <mat-radio-group [value]="treeType" (change)="changeTreeType($event)" aria-label="Select an option">
+                    <p>
+                        <mat-radio-button value="radial">RADIAL</mat-radio-button>
+                    </p>
+                    <p>
+                        <mat-radio-button value="rectangular">RECTANGULAR</mat-radio-button>
+                    </p>
+                </mat-radio-group>
+                <p>
+                    <mat-checkbox (change)="onHideLabels()" [(ngModel)]="hideLabels">Hide labels(better performance)
+                    </mat-checkbox>
+                </p>
+            </mat-card-content>
+        </mat-card>
+        <app-legend-widget  class="sub-card"(selectOptions)="onSelectOptions($event)" [legendData]="geneData"></app-legend-widget>
+
     </div>
 </div>
-

@@ -483,18 +483,6 @@ export class TreeRenderer {
         options.sliderScaleV = 10;
         options.sliderLeafR = 3;
 
-        // get dropdown values
-        var leafColor, backgroundColor;
-        if ('mapping' in options && !options.mapping.empty()) {
-            // TODO
-            // var e = document.getElementById("leafColor");
-            // options['leafColor'] = e.options[e.selectedIndex].value;
-            // var e = document.getElementById("leafText");
-            // options['leafText'] = e.options[e.selectedIndex].value;
-            // var e = document.getElementById("backgroundColor");
-            // options['backgroundColor'] = e.options[e.selectedIndex].value;
-        }
-
     }
 
     orientTreeLabels() {
