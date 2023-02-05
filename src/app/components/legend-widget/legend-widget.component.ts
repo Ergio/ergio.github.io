@@ -18,7 +18,7 @@ export class LegendWidgetComponent implements OnInit, OnChanges {
   @Input() legendData: any
   @Output() selectOptions: any  = new EventEmitter<any>();
 
-  features = ["GENE_NAME", "CLUSTER", "ORGANISM", "CLUSTER_PRODUCT", "BIOSYNTHETIC_CLASSES", "GENE_PRODUCT", "PROTEIN_ID"]
+  features = ["GENE_NAME", "CLUSTER", "ORGANISM", "CLUSTER_PRODUCT", "BIOSYNTHETIC_CLASSES", "GENE_PRODUCT", "PROTEIN_ID", "DATA_TYPE"]
   selectedFeature = "BIOSYNTHETIC_CLASSES"
   
   featureOptions: string[] = []
@@ -47,6 +47,13 @@ export class LegendWidgetComponent implements OnInit, OnChanges {
     const legendDataArr = Object.values(this.legendData)
     const selectedOptionArr = legendDataArr.map((v: any) => v[this.selectedFeature])
     this.featureOptions = Array.from(new Set(selectedOptionArr))
+
+    this.featureOptions = this.featureOptions.sort((a, b) => {
+      const a_l = selectedOptionArr.filter(v => v === a).length
+      const b_l = selectedOptionArr.filter(v => v === b).length
+      return b_l - a_l
+    })
+
     this.procesedFeatureOptions = this.featureOptions.map(v => v && v.trim().replace('\t', '').replace('\n', '; '))
 
     this.procesedFeatureOptionsLength = this.featureOptions.map(

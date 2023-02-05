@@ -615,7 +615,7 @@ export class TreeRenderer {
     selectLeafs(geneMap: any) {
         this.svg.selectAll("g.leaf circle")
             .attr("r", function (d: any) {
-                return geneMap[d.name] ? 5 : 3
+                return geneMap[d.name] ? 6 : 3
             })
             .style('fill', function (d: any) {
                 return geneMap[d.name] ? "red" : "#aaa"

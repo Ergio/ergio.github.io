@@ -15,6 +15,9 @@ import mfsDataXlsx from './tree-data/mfs_xlsx.json';
 import abcData from './tree-data/abc.json';
 import abcDataXlsx from './tree-data/abc_xlsx.json';
 
+import allData from './tree-data/all.json';
+import allDataXlsx from './tree-data/all_xlsx.json';
+
 const dataMap = {
   abc: {
     treeData: abcData,
@@ -23,6 +26,10 @@ const dataMap = {
   mfs: {
     treeData: mfsData,
     description: mfsDataXlsx,
+  },
+  all: {
+    treeData: allData,
+    description: allDataXlsx,
   }
 }
 
@@ -49,7 +56,7 @@ export class TreeChartComponent implements AfterViewInit {
   @Input() data!: any
   @Input() dataXlsx!: any
 
-  dataType: 'abc' | 'mfs' = 'abc'
+  dataType: 'abc' | 'mfs' | 'all' = 'abc'
 
   treeDataObject:any = dataMap[this.dataType].treeData
   geneData:any =  dataMap[this.dataType].description
