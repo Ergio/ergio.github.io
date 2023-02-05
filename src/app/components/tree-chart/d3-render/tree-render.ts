@@ -30,6 +30,9 @@ declare var d3: {
 
 declare var jQuery: any
 
+
+
+
 export class TreeRenderer {
     svg: any
     options = {} as any
@@ -247,6 +250,8 @@ export class TreeRenderer {
     }
 
     formatTree(nodes: any, links: any, yscale: any = null, xscale: any = null, height: any, opts: any) {
+        const geneData = this.treeGlobalObject.geneData
+
         this.link = d3.select('#treeSVG').selectAll("path.link")
             .data(this.treeGlobalObject.links)
             .enter().append("path")
@@ -295,10 +300,27 @@ export class TreeRenderer {
                 return undefined
             } as any)
 
-        d3.selectAll('.leaf')
+        var clickFlag = false;
+        const tip = this.tip
+        var leaf_obj = d3.selectAll('.leaf')
             .style('cursor', 'pointer')
             .on('mouseover', this.tip.show)
             .on('mouseout', this.tip.hide)
+            // .on('click', tip.show)
+            // leaf_obj
+            // leaf_obj.on('click', function(...d){
+            //     console.log(d)
+            //     if(clickFlag){
+            //        tip.hide(d[0]);  
+            //     }else{
+            //        tip.show(d[0]);  
+            //     }
+            //     return clickFlag = !clickFlag;
+            // })
+
+
+            // .on('mouseover', this.tip.show)
+            // .on('mouseout', this.tip.hide)
 
         // node backgrounds
         this.node.append("rect")
