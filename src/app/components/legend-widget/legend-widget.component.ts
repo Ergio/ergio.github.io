@@ -15,7 +15,16 @@ import {MatSelectModule} from '@angular/material/select';
 export class LegendWidgetComponent implements OnInit, OnChanges {
 
 
-  @Input() legendData: any
+  @Input() set legendData(data: any) {
+    this.legendD = data
+    console.log(this.formGroup)
+  }
+
+  @Input() set resetData(data: any) {
+    this.formGroup && this.formGroup.reset();
+  }
+
+  legendD = {}
   @Output() selectOptions: any  = new EventEmitter<any>();
 
   features = ["GENE_NAME", "CLUSTER", "ORGANISM", "CLUSTER_PRODUCT", "BIOSYNTHETIC_CLASSES", "GENE_PRODUCT", "PROTEIN_ID", "DATA_TYPE"]
@@ -40,11 +49,12 @@ export class LegendWidgetComponent implements OnInit, OnChanges {
   }
 
   onFeatureChange(e: any) {
+    this.formGroup && this.formGroup.reset();
     this.init()
   }
 
   init() {
-    const legendDataArr = Object.values(this.legendData)
+    const legendDataArr = Object.values(this.legendD)
     const selectedOptionArr = legendDataArr.map((v: any) => v[this.selectedFeature])
     this.featureOptions = Array.from(new Set(selectedOptionArr))
 

@@ -16,20 +16,40 @@ import abcData from './tree-data/abc.json';
 import abcDataXlsx from './tree-data/abc_xlsx.json';
 
 import allData from './tree-data/all.json';
+
+import allAAData from './tree-data/all_aa.json';
 import allDataXlsx from './tree-data/all_xlsx.json';
 
 const dataMap = {
   abc: {
-    treeData: abcData,
-    description: abcDataXlsx,
+    nucleotides: {
+      treeData: abcData as any,
+      description: abcDataXlsx as any,
+    },
+    amino_acids: {
+      treeData: {} as any,
+      description: abcDataXlsx as any,
+    }
   },
   mfs: {
-    treeData: mfsData,
-    description: mfsDataXlsx,
+      nucleotides: {
+        treeData: mfsData as any,
+        description: mfsDataXlsx as any,
+      },
+      amino_acids: {
+        treeData: {} as any,
+        description: mfsDataXlsx as any,
+      }
   },
   all: {
-    treeData: allData,
-    description: allDataXlsx,
+    nucleotides: {
+      treeData: allData as any,
+      description: allDataXlsx as any,
+    },
+    amino_acids: {
+      treeData: allAAData as any,
+      description: allDataXlsx as any,
+    }
   }
 }
 
@@ -58,8 +78,10 @@ export class TreeChartComponent implements AfterViewInit {
 
   dataType: 'abc' | 'mfs' | 'all' = 'abc'
 
-  treeDataObject:any = dataMap[this.dataType].treeData
-  geneData:any =  dataMap[this.dataType].description
+  seqType: 'nucleotides' | 'amino_acids' = 'nucleotides'
+
+  treeDataObject:any = dataMap[this.dataType][this.seqType].treeData
+  geneData:any =  dataMap[this.dataType][this.seqType].description
 
   treeType = 'radial'
 
@@ -100,8 +122,20 @@ export class TreeChartComponent implements AfterViewInit {
   changeData(e: any) {
     if(e.value !== this.dataType) {
       this.dataType = e.value
-      this.treeDataObject = dataMap[this.dataType].treeData
-      this.geneData =  dataMap[this.dataType].description
+      console.log(this.dataType)
+      console.log(dataMap[this.dataType])
+      this.treeDataObject = dataMap[this.dataType][this.seqType].treeData
+      this.geneData =  dataMap[this.dataType][this.seqType].description
+
+      this.rerender(this.treeDataObject, this.geneData)
+    }
+  }
+
+  changeSeqType(e: any) {
+    if(e.value !== this.seqType) {
+      this.seqType = e.value
+      this.treeDataObject = dataMap[this.dataType][this.seqType].treeData
+      this.geneData =  dataMap[this.dataType][this.seqType].description
 
       this.rerender(this.treeDataObject, this.geneData)
     }
