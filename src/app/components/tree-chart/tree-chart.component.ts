@@ -112,7 +112,7 @@ export class TreeChartComponent implements AfterViewInit {
   }
 
   onSelectOptions(e: any) {
-    this.treeRenderer.selectLeafs(e)
+    this.treeRenderer.selectLeafs(e, 'green')
   }
 
   onHideLabels() {
@@ -139,5 +139,17 @@ export class TreeChartComponent implements AfterViewInit {
 
       this.rerender(this.treeDataObject, this.geneData)
     }
+  }
+
+  download() {
+    var svgData = document.getElementById("SVGtree")!.outerHTML;
+    var svgBlob = new Blob([svgData], {type:"image/svg+xml;charset=utf-8"});
+    var svgUrl = URL.createObjectURL(svgBlob);
+    var downloadLink = document.createElement("a");
+    downloadLink.href = svgUrl;
+    downloadLink.download = "newesttree.svg";
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
   }
 }

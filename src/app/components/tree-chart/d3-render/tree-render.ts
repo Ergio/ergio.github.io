@@ -137,6 +137,7 @@ export class TreeRenderer {
         this.svg = tmp.append("div")
             .attr("class", "col-sm-12")
             .style('height', tmp[0][0].offsetHeight + 'px')
+            .style('background-color', 'white')
             .attr("id", "tree")
             .append("svg:svg")
             .attr("xmlns", "http://www.w3.org/2000/svg")
@@ -367,6 +368,8 @@ export class TreeRenderer {
         if (!opts.hideRuler && yscale != null) {
 
             if (opts.treeType == 'rectangular') {
+                d3.select('#rulerSVG').attr("fill", "white")
+
 
                 let rulerG = d3.select('#rulerSVG').selectAll("g")
                     .data(yscale.ticks(10))
@@ -382,6 +385,8 @@ export class TreeRenderer {
 
 
             } else if (opts.treeType == 'radial') {
+
+                d3.select('#rulerSVG').attr("fill", "white")
 
                 let rulerG = d3.select('#rulerSVG').selectAll("g")
                     .data(yscale.ticks(10))
@@ -634,13 +639,14 @@ export class TreeRenderer {
             } as any)
     }
 
-    selectLeafs(geneMap: any) {
+    selectLeafs(geneMap: any, color = "red") {
         this.svg.selectAll("g.leaf circle")
             .attr("r", function (d: any) {
                 return geneMap[d.name] ? 10 : 3
             })
+            // .attr("opacity", "0.2")
             .style('fill', function (d: any) {
-                return geneMap[d.name] ? "red" : "#aaa"
+                return geneMap[d.name] ? geneMap[d.name] : "#aaa"
             })
     }
 

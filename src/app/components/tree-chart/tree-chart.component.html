@@ -1,6 +1,7 @@
 <h2 style="margin: 0; text-align: center">Phylogenetic tree of the transporters</h2>
 <div class="container" *ngIf="geneData">
     <mat-card class="chart card">
+        <button (click)="download()">Download</button>
         <mat-card-content>
             <div id='tree-chart'></div>
         </mat-card-content>
