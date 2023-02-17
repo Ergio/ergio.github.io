@@ -27,7 +27,14 @@ export class LegendWidgetComponent implements OnInit, OnChanges {
   legendD = {}
   @Output() selectOptions: any  = new EventEmitter<any>();
 
-  features = ["GENE_NAME", "CLUSTER", "ORGANISM", "CLUSTER_PRODUCT", "BIOSYNTHETIC_CLASSES", "GENE_PRODUCT", "PROTEIN_ID", "DATA_TYPE"]
+  features = ["GENE_NAME",
+  "CLUSTER", "ORGANISM",
+  "CLUSTER_PRODUCT", "BIOSYNTHETIC_CLASSES",
+  "GENE_PRODUCT", "PROTEIN_ID",
+  "DATA_TYPE", "LENGTH",
+  "START",
+  "STOP",
+  "GC"]
   selectedFeature = "BIOSYNTHETIC_CLASSES"
   
   featureOptions: string[] = []
