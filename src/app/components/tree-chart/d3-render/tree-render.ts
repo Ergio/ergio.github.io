@@ -11,6 +11,7 @@ import { scaleLeafSeparation } from "./utils/scaleLeafSeparation";
 import { dimColor } from "./utils/dimColor";
 import { positionLegend } from "./utils/positionLegend";
 import { panZoom } from "./utils/panZoom";
+import { BehaviorSubject } from "rxjs";
 
 declare var d3: {
     behavior: typeof D3.behavior,
@@ -73,6 +74,8 @@ export class TreeRenderer {
         links: undefined,
         geneData: {}
     }
+
+    event$ = new BehaviorSubject(null)
 
     constructor() { }
 
@@ -342,17 +345,16 @@ export class TreeRenderer {
 
 
         d3.selectAll('.inner.node circle')
-            .on("mouseover", function (e: any) {
-                d3.select(e)
-                    .transition()
-                    .duration(100)
-                    .attr("r", 6);
-            })
-            .on("mouseout", function (e: any) {
-                d3.select(e)
-                    .transition()
-                    .duration(100)
-                    .attr("r", 3);
+            .on("click", (e: any) => {
+                // const c0 = e.children[0]
+                // const c1 = e.children[1]
+                // e.children = [c1, c0]
+
+                // const b0 = e.branchset[0]
+                // const b1 = e.branchset[1]
+                // e.branchset = [b1, b0]
+                
+               this.event$.next(e)
             })
 
 

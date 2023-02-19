@@ -17,8 +17,11 @@ import abcDataXlsx from './tree-data/abc_xlsx.json';
 
 import allData from './tree-data/all.json';
 
+import empty from './tree-data/empty.json';
+
 import allAAData from './tree-data/all_aa.json';
 import allDataXlsx from './tree-data/all_xlsx.json';
+import { AnyCatcher } from 'rxjs/internal/AnyCatcher';
 
 const dataMap = {
   abc: {
@@ -27,7 +30,7 @@ const dataMap = {
       description: abcDataXlsx as any,
     },
     amino_acids: {
-      treeData: {} as any,
+      treeData: empty as any,
       description: abcDataXlsx as any,
     }
   },
@@ -37,7 +40,7 @@ const dataMap = {
         description: mfsDataXlsx as any,
       },
       amino_acids: {
-        treeData: {} as any,
+        treeData: empty as any,
         description: mfsDataXlsx as any,
       }
   },
@@ -82,10 +85,13 @@ export class TreeChartComponent implements AfterViewInit {
 
   treeDataObject:any = dataMap[this.dataType][this.seqType].treeData
   geneData:any =  dataMap[this.dataType][this.seqType].description
+  modifiedTreeDataObject!:any;
 
   treeType = 'radial'
 
   hideLabels = true;
+
+  
   treeRenderer = new TreeRenderer()
 
   constructor(
@@ -94,8 +100,37 @@ export class TreeChartComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
 
+    this.modifiedTreeDataObject = JSON.parse(JSON.stringify(this.treeDataObject))
   
     this.rerender(this.treeDataObject, this.geneData)
+    console.log(this.treeDataObject)
+
+    function searchTree(element: any, matchingTitle: any): any{
+      if(element.name == matchingTitle){
+           return element;
+      }else if (element.branchset.length){
+           var i;
+           var result = null;
+           for(i=0; result == null && i < element.branchset.length; i++){
+                result = searchTree(element.branchset[i], matchingTitle);
+           }
+           return result;
+      }
+      return null;
+    }
+
+    this.treeRenderer.event$.subscribe((e: any) => {
+      const node = searchTree(this.modifiedTreeDataObject, e && e.name)
+
+      if(node) {
+        const [a, b] = node.branchset
+        node.branchset = [b, a]
+        
+        this.rerender(JSON.parse(JSON.stringify(this.modifiedTreeDataObject)), this.geneData)
+      
+      }
+    }
+    )
   }
 
   rerender(treeData: any, geneData: any) {
@@ -127,6 +162,8 @@ export class TreeChartComponent implements AfterViewInit {
       this.treeDataObject = dataMap[this.dataType][this.seqType].treeData
       this.geneData =  dataMap[this.dataType][this.seqType].description
 
+
+      // this.modifiedTreeDataObject = JSON.parse(JSON.stringify(this.treeDataObject))
       this.rerender(this.treeDataObject, this.geneData)
     }
   }
@@ -137,6 +174,7 @@ export class TreeChartComponent implements AfterViewInit {
       this.treeDataObject = dataMap[this.dataType][this.seqType].treeData
       this.geneData =  dataMap[this.dataType][this.seqType].description
 
+      // this.modifiedTreeDataObject = JSON.parse(JSON.stringify(this.treeDataObject))
       this.rerender(this.treeDataObject, this.geneData)
     }
   }
