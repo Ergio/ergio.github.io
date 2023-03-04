@@ -9,52 +9,14 @@ import { CommonModule } from '@angular/common';
 import { TreeRenderer } from './d3-render/tree-render';
 import { FormsModule } from '@angular/forms';
 
-import mfsData from './tree-data/mfs.json';
-import mfsDataXlsx from './tree-data/mfs_xlsx.json';
 
-import abcData from './tree-data/abc.json';
-import abcDataXlsx from './tree-data/abc_xlsx.json';
+import { LegendWidget2Component } from '../legend-widget2/legend-widget2.component';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MainWidgetComponent } from '../main-widget/main-widget.component';
+import { TreeDataType } from '../main-widget/tree-data-type';
+import { downloadTreeChart } from './d3-render/updated-utils/download';
+import { MatIconModule } from '@angular/material/icon';
 
-import allData from './tree-data/all.json';
-
-import empty from './tree-data/empty.json';
-
-import allAAData from './tree-data/all_aa.json';
-import allDataXlsx from './tree-data/all_xlsx.json';
-import { AnyCatcher } from 'rxjs/internal/AnyCatcher';
-
-const dataMap = {
-  abc: {
-    nucleotides: {
-      treeData: abcData as any,
-      description: abcDataXlsx as any,
-    },
-    amino_acids: {
-      treeData: empty as any,
-      description: abcDataXlsx as any,
-    }
-  },
-  mfs: {
-      nucleotides: {
-        treeData: mfsData as any,
-        description: mfsDataXlsx as any,
-      },
-      amino_acids: {
-        treeData: empty as any,
-        description: mfsDataXlsx as any,
-      }
-  },
-  all: {
-    nucleotides: {
-      treeData: allData as any,
-      description: allDataXlsx as any,
-    },
-    amino_acids: {
-      treeData: allAAData as any,
-      description: allDataXlsx as any,
-    }
-  }
-}
 
 @Component({
   selector: 'app-tree-chart',
@@ -67,31 +29,26 @@ const dataMap = {
     MatButtonModule,
     MatRadioModule,
     MatCheckboxModule,
+    MatButtonModule,
+    MainWidgetComponent,
     LegendWidgetComponent,
-    FormsModule
-
+    LegendWidget2Component,
+    FormsModule,
+    MatTabsModule,
+    MatIconModule
   ]
 })
 export class TreeChartComponent implements AfterViewInit {
-  // treeDataObject = abcData
-  // geneData = abcDataXlsx
+  treeData: TreeDataType = {
+    treeDataObject: {},
+    geneData: {}
+  } as TreeDataType
 
-  @Input() data!: any
-  @Input() dataXlsx!: any
+  treeType: 'radial' | 'rectangular' = 'radial'
 
-  dataType: 'abc' | 'mfs' | 'all' = 'abc'
+  modifiedTreeDataObject: any
 
-  seqType: 'nucleotides' | 'amino_acids' = 'nucleotides'
 
-  treeDataObject:any = dataMap[this.dataType][this.seqType].treeData
-  geneData:any =  dataMap[this.dataType][this.seqType].description
-  modifiedTreeDataObject!:any;
-
-  treeType = 'radial'
-
-  hideLabels = true;
-
-  
   treeRenderer = new TreeRenderer()
 
   constructor(
@@ -99,95 +56,34 @@ export class TreeChartComponent implements AfterViewInit {
   ) { }
 
   ngAfterViewInit(): void {
-
-    this.modifiedTreeDataObject = JSON.parse(JSON.stringify(this.treeDataObject))
-  
-    this.rerender(this.treeDataObject, this.geneData)
-    console.log(this.treeDataObject)
-
-    function searchTree(element: any, matchingTitle: any): any{
-      if(element.name == matchingTitle){
-           return element;
-      }else if (element.branchset.length){
-           var i;
-           var result = null;
-           for(i=0; result == null && i < element.branchset.length; i++){
-                result = searchTree(element.branchset[i], matchingTitle);
-           }
-           return result;
-      }
-      return null;
-    }
-
-    this.treeRenderer.event$.subscribe((e: any) => {
-      const node = searchTree(this.modifiedTreeDataObject, e && e.name)
-
-      if(node) {
-        const [a, b] = node.branchset
-        node.branchset = [b, a]
-        
-        this.rerender(JSON.parse(JSON.stringify(this.modifiedTreeDataObject)), this.geneData)
-      
-      }
-    }
-    )
+    this.rerender(this.treeData.treeDataObject, this.treeData.geneData)
   }
 
   rerender(treeData: any, geneData: any) {
     this.treeRenderer.renderTree(treeData, '#tree-chart', { treeType: this.treeType }, geneData)
   }
 
-  changeTreeType(e: any) {
-    if (this.treeType !== e.value) {
-      this.treeType = e.value
-      this.treeRenderer = new TreeRenderer()
-      this.geneData = {...this.geneData}
-      this.rerender(this.treeDataObject, this.geneData)
-    }
-  }
-
   onSelectOptions(e: any) {
     this.treeRenderer.selectLeafs(e, 'green')
   }
 
-  onHideLabels() {
-    this.treeRenderer.hideLabels(this.hideLabels)
+  onChangeTreeChartHideLabels(event: boolean) {
+    this.treeRenderer.hideLabels(event)
   }
 
-  changeData(e: any) {
-    if(e.value !== this.dataType) {
-      this.dataType = e.value
-      console.log(this.dataType)
-      console.log(dataMap[this.dataType])
-      this.treeDataObject = dataMap[this.dataType][this.seqType].treeData
-      this.geneData =  dataMap[this.dataType][this.seqType].description
-
-
-      // this.modifiedTreeDataObject = JSON.parse(JSON.stringify(this.treeDataObject))
-      this.rerender(this.treeDataObject, this.geneData)
-    }
+  onChangeTreeChartData(event: TreeDataType) {
+    this.treeData = event
+    this.treeRenderer = new TreeRenderer()
+    this.rerender(event.treeDataObject, event.geneData)
   }
 
-  changeSeqType(e: any) {
-    if(e.value !== this.seqType) {
-      this.seqType = e.value
-      this.treeDataObject = dataMap[this.dataType][this.seqType].treeData
-      this.geneData =  dataMap[this.dataType][this.seqType].description
-
-      // this.modifiedTreeDataObject = JSON.parse(JSON.stringify(this.treeDataObject))
-      this.rerender(this.treeDataObject, this.geneData)
-    }
+  onChangeTreeChartType(event: 'radial' | 'rectangular') {
+    this.treeType = event
+    this.treeRenderer = new TreeRenderer()
+    this.rerender(this.treeData.treeDataObject, this.treeData.geneData)
   }
 
   download() {
-    var svgData = document.getElementById("SVGtree")!.outerHTML;
-    var svgBlob = new Blob([svgData], {type:"image/svg+xml;charset=utf-8"});
-    var svgUrl = URL.createObjectURL(svgBlob);
-    var downloadLink = document.createElement("a");
-    downloadLink.href = svgUrl;
-    downloadLink.download = "newesttree.svg";
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
+    downloadTreeChart()
   }
 }

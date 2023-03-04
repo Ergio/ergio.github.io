@@ -1,0 +1,40 @@
+<mat-card class="legend-card">
+    <mat-card-content>
+            <mat-form-field appearance="outline">
+                <mat-label>Feature</mat-label>
+                <mat-select (selectionChange)="onFeatureChange($event)" [(value)]="selectedFeature">
+                    <mat-option *ngFor="let feature of features" [value]="feature">
+                        {{feature}}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <div style="width: 100%; display: flex; align-items: center;">
+                <mat-form-field class="search" appearance="outline">
+                    <mat-label>Search</mat-label>
+                    <input matInput type="text" [(ngModel)]="searchValue">
+                    <button *ngIf="searchValue" matSuffix mat-icon-button aria-label="Clear" (click)="searchValue=''">
+                        <mat-icon>close</mat-icon>
+                    </button>
+                </mat-form-field>
+                <button (click)="search()" class="fab" mat-mini-fab color="primary" aria-label="icon">
+                    <mat-icon>search</mat-icon>
+                </button>
+                <button *ngIf="searchValue" (click)="add()" class="fab" mat-mini-fab color="primary" aria-label="icon">
+                    <mat-icon>add</mat-icon>
+                </button>
+            </div>
+            <mat-chip-list #chipGrid aria-label="Enter keywords" >
+                <mat-chip *ngFor="let keyword of searchList" (removed)="removeKeyword(keyword)">
+                  {{keyword}}
+                  <button matChipRemove aria-label="'remove ' + keyword">
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip>
+              </mat-chip-list>
+
+            <p class="checkbox-row" *ngFor="let item of legendD | keyvalue; index as i;">
+                <span *ngIf="resultMap[item.key]">{{item.value[selectedFeature]}}</span>
+            </p>
+    </mat-card-content>
+</mat-card>

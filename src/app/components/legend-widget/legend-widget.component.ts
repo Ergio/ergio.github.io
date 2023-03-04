@@ -55,7 +55,6 @@ export class LegendWidgetComponent implements OnInit, OnChanges {
 
   @Input() set legendData(data: any) {
     this.legendD = data
-    console.log(this.formGroup)
   }
 
   @Input() set resetData(data: any) {

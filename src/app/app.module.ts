@@ -4,11 +4,10 @@ import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import {MatCardModule} from '@angular/material/card';
-import {MatButtonModule} from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
 import { TreeChartComponent } from './components/tree-chart/tree-chart.component';
-import {MatRadioModule} from '@angular/material/radio';
-import { LegendWidgetComponent } from './components/legend-widget/legend-widget.component';
+import { MatRadioModule } from '@angular/material/radio';
 
 @NgModule({
   declarations: [
@@ -21,6 +20,7 @@ import { LegendWidgetComponent } from './components/legend-widget/legend-widget.
 
     // components
     TreeChartComponent,
+
 
     // material
     MatCardModule,

@@ -1,0 +1,52 @@
+<mat-card class="">
+    <mat-card-content>
+        <div style="display: flex;">
+            <div style="width: 50%;">
+                <h5>Transporters:</h5>
+                <mat-radio-group [value]="dataType" (change)="changeData($event)">
+                    <p>
+                        <mat-radio-button value="abc">ABC</mat-radio-button>
+                    </p>
+                    <p>
+                        <mat-radio-button value="mfs">MFS</mat-radio-button>
+                    </p>
+                    <p>
+                        <mat-radio-button value="all">All</mat-radio-button>
+                    </p>
+                </mat-radio-group>
+            </div>
+
+
+            <div style="width: 50%;">
+                <h5>Sequence type:</h5>
+                <mat-radio-group [value]="seqType" (change)="changeSeqType($event)">
+                    <p>
+                        <mat-radio-button class="smallRadio" value="nucleotides">Nucleotides</mat-radio-button>
+                    </p>
+                    <p>
+                        <mat-radio-button class="smallRadio" value="amino_acids">Amino acids</mat-radio-button>
+                    </p>
+                </mat-radio-group>
+            </div>
+
+        </div>
+
+        <div>
+            <h5>Chart type:</h5>
+            <mat-radio-group [value]="treeType" (change)="changeTreeType($event)" aria-label="Select an option">
+                <p>
+                    <mat-radio-button value="radial">RADIAL</mat-radio-button>
+                </p>
+                <p>
+                    <mat-radio-button value="rectangular">RECTANGULAR</mat-radio-button>
+                </p>
+            </mat-radio-group>
+            <p>
+                <mat-checkbox (change)="onHideLabels()" [(ngModel)]="hideLabels">Hide labels
+                </mat-checkbox>
+            </p>
+        </div>
+        <!-- <button mat-raised-button (click)="download()">Download Chart</button> -->
+
+    </mat-card-content>
+</mat-card>

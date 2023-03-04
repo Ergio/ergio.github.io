@@ -1,64 +1,30 @@
-<h2 style="margin: 0; text-align: center">Phylogenetic tree of the transporters</h2>
-<div class="container" *ngIf="geneData">
+<div class="container" *ngIf="treeData.geneData">
     <mat-card class="chart card">
-        <button (click)="download()">Download</button>
+        <button (click)="download()" mat-icon-button style="position:absolute">
+            <mat-icon>download</mat-icon>
+        </button>
         <mat-card-content>
             <div id='tree-chart'></div>
         </mat-card-content>
     </mat-card>
 
-    <div class="card">
-        <mat-card class="sub-card">
-            <mat-card-content>
-                <div style="display: flex;">
-                    <div style="width: 50%;">
-                        <h5>Transporters:</h5>
-                        <mat-radio-group [value]="dataType" (change)="changeData($event)">
-                            <p>
-                                <mat-radio-button value="abc">ABC</mat-radio-button>
-                            </p>
-                            <p>
-                                <mat-radio-button value="mfs">MFS</mat-radio-button>
-                            </p>
-                            <p>
-                                <mat-radio-button value="all">All</mat-radio-button>
-                            </p>
-                        </mat-radio-group>
-                    </div>
-    
-    
-                    <div style="width: 50%;">
-                        <h5>Sequence type:</h5>
-                        <mat-radio-group [value]="seqType" (change)="changeSeqType($event)">
-                            <p>
-                                <mat-radio-button class="smallRadio" value="nucleotides">Nucleotides</mat-radio-button>
-                            </p>
-                            <p>
-                                <mat-radio-button class="smallRadio" value="amino_acids">Amino acids</mat-radio-button>
-                            </p>
-                        </mat-radio-group>
-                    </div>
-                </div>
+    <div class="card tab-group">
+        <mat-tab-group animationDuration="0ms">
+            <mat-tab label="Main">
+                <app-main-widget (changeTreeChartHideLabels)="onChangeTreeChartHideLabels($event)"
+                    (changeTreeChartType)="onChangeTreeChartType($event)"
+                    (changeTreeChartData)="onChangeTreeChartData($event)"></app-main-widget>
+            </mat-tab>
+            <mat-tab label="Filters">
+                <app-legend-widget class="widget" (selectOptions)="onSelectOptions($event)"
+                    [resetData]="treeData.treeDataObject" [legendData]="treeData.geneData"></app-legend-widget>
+            </mat-tab>
+            <mat-tab label="Search">
+                <app-legend-widget2 class="widget" (selectOptions)="onSelectOptions($event)"
+                    [resetData]="treeData.treeDataObject" [legendData]="treeData.geneData"></app-legend-widget2>
+            </mat-tab>
+        </mat-tab-group>
 
-                <div>
-                    <h5>Chart type:</h5>
-                    <mat-radio-group [value]="treeType" (change)="changeTreeType($event)" aria-label="Select an option">
-                        <p>
-                            <mat-radio-button value="radial">RADIAL</mat-radio-button>
-                        </p>
-                        <p>
-                            <mat-radio-button value="rectangular">RECTANGULAR</mat-radio-button>
-                        </p>
-                    </mat-radio-group>
-                    <p>
-                        <mat-checkbox (change)="onHideLabels()" [(ngModel)]="hideLabels">Hide labels
-                        </mat-checkbox>
-                    </p>
-                </div>
-            </mat-card-content>
-        </mat-card>
-
-        <app-legend-widget  class="sub-card"(selectOptions)="onSelectOptions($event)" [resetData]="treeDataObject" [legendData]="geneData"></app-legend-widget>
 
     </div>
 </div>
