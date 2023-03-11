@@ -21,26 +21,25 @@ Returns:
 */
 
 export function scaleBranchLengths(nodes: any, width: number) {
-
     // Visit all nodes and adjust y pos width distance metric
-    var visitPreOrder = function(root: any, callback: any) {
+    var visitPreOrder = function (root: any, callback: any) {
         callback(root)
         if (root.children) {
-            for (var i = root.children.length - 1; i >= 0; i--){
+            for (var i = root.children.length - 1; i >= 0; i--) {
                 visitPreOrder(root.children[i], callback)
             };
         }
     }
-    visitPreOrder(nodes[0], function(node: any) {
+    visitPreOrder(nodes[0], function (node: any) {
         node.rootDist = (node.parent ? node.parent.rootDist : 0) + (node.length || 0)
     })
-    var rootDists = nodes.map(function(n: any) { return n.rootDist; });
+    var rootDists = nodes.map(function (n: any) { return n.rootDist; });
 
     var yscale = d3.scale.linear()
         .domain([0, d3.max(rootDists)])
         .range([0, width]);
 
-    visitPreOrder(nodes[0], function(node: any) {
+    visitPreOrder(nodes[0], function (node: any) {
         node.y = yscale(node.rootDist)
     })
     return yscale

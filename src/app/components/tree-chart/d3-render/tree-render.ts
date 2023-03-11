@@ -9,7 +9,6 @@ import { range } from "./utils/range";
 import { getTreeBox } from "./utils/getTreeBox";
 import { scaleLeafSeparation } from "./utils/scaleLeafSeparation";
 import { dimColor } from "./utils/dimColor";
-import { positionLegend } from "./utils/positionLegend";
 import { panZoom } from "./utils/panZoom";
 import { BehaviorSubject } from "rxjs";
 
@@ -41,7 +40,7 @@ export class TreeRenderer {
     colorScales: any
     mappingFile: any
     margin = { top: 0, right: 10, bottom: 10, left: 10 };
-    startW = 1200
+    startW = 2000
     startH = 900
     width = this.startW - this.margin.left - this.margin.right;
     height = this.startH - this.margin.top - this.margin.bottom;
@@ -55,7 +54,6 @@ export class TreeRenderer {
     zoom = d3.behavior.zoom()
     treeType = 'rectangular'
     scale = true
-    legendColorScale = d3.scale.linear().domain([0.5, 1]).range([255, 0])
     tip = d3.tip()
         .attr('class', 'd3-tip')
         .offset([0, 20])
@@ -215,28 +213,10 @@ export class TreeRenderer {
         this.svg.selectAll("g.leaf circle")
             .attr("r", options.sliderLeafR)
             .style('fill', '#aaa')
-        // .style('fill', function(d: any) {
-        //     return "#aaa" || "red"//mapVals.get(d.name) ? dimColor(colorScale(mapVals.get(d.name))) : 'white'
-        // })
+
         this.orientTreeLabels();
 
-
-
-        // // toggle leaf labels
-        // this.svg.selectAll('g.leaf.node text')
-        //     .style('fill-opacity', options.skipLeafLabel? 1e-6 : 1 )
-
-        // // toggle distance labels
-        // this.svg.selectAll('g.inner.node text')
-        //     .style('fill-opacity', options.skipDistanceLabel? 1e-6 : 1 )
-
-
-
-        if ('mapping' in options) {
-            this.updateLegend();  // will reposition legend as well
-        } else {
-            d3.select('svg').attr("viewBox", "0 0 " + parseInt(window.innerWidth as any) + " " + parseInt(window.innerHeight as any)); // set viewbox
-        }
+        d3.select('svg').attr("viewBox", "0 0 " + parseInt(window.innerWidth as any) + " " + parseInt(window.innerHeight as any)); // set viewbox
 
     }
 
@@ -402,77 +382,6 @@ export class TreeRenderer {
         }
     }
 
-    updateLegend() {
-        const options = this.options
-        // remove legend if one exists so we can update
-        d3.selectAll("#legendID g").remove()
-
-        // update leaf node
-        // if (options.leafColor != '') {
-        //     var colorScale = options.colorScale.get(options.leafColor); // color scale
-        //     var mapVals = options.mapping.get(options.leafColor); // d3.map() obj with leaf name as key
-
-        //     // fill out legend
-        //     this.generateLegend(options.leafColor, mapVals, colorScale, 'circle');
-
-        //     // update node styling
-
-        //     this.svg.selectAll('g.leaf.node circle')
-        //         .transition()
-        //         .style('fill', function(d: any) {
-        //             return 'red'//mapVals.get(d.name) ? dimColor(colorScale(mapVals.get(d.name))) : 'white'
-        //         })
-        //         .style('stroke', function(d: any) {
-        //             return mapVals.get(d.name) ? colorScale(mapVals.get(d.name)) : 'gray'
-        //         })
-
-        // } else if (options.leafColor == '') {
-        //     this.svg.selectAll('g.leaf.node circle')
-        //         .transition()
-        //         .attr("style","");
-        // }
-
-        // update leaf background
-        if (options.backgroundColor != '') {
-            var colorScale = this.colorScales.get(options.backgroundColor) // color scale
-            var mapVals = this.mapParse.get(options.backgroundColor) // d3.map() obj with leaf name as key
-
-
-            // fill out legend
-            var offset = 25;
-            this.generateLegend(options.backgroundColor, mapVals, colorScale, 'rect');
-
-            // update node background style
-            this.svg.selectAll('g.leaf.node rect')
-                .transition()
-                .duration(500)
-                .attr("width", function (d: any) {
-                    var name = d.name.replace(new RegExp('\\.', 'g'), '_');
-                    var textWidth = d3.select('#leaf_' + name + ' text').node().getComputedTextLength();
-                    var radius = d3.select('#leaf_' + name + ' circle').node().getBBox().height / 2.0;
-                    return textWidth + radius + 10; // add extra so background is wider than label
-                })
-                .style('fill', function (d: any) {
-                    return 'red'
-                })
-                .style('opacity', 1)
-        } else if (options.backgroundColor == '') {
-
-            this.svg.selectAll('g.leaf.node rect')
-                .transition()
-                .duration(500)
-                .attr('width', '0')
-                .style('opacity', '1e-6')
-        }
-
-        if (options.backgroundColor != '' || options.leafColor != '') {
-            positionLegend(this.margin, this.zoom);
-        }
-
-
-        d3.select('svg').attr("viewBox", "0 0 " + parseInt(window.innerWidth as any) + " " + parseInt(window.innerHeight as any)); // set viewbox
-
-    }
 
     getGUIoptions() {
         const options = this.options
@@ -530,115 +439,6 @@ export class TreeRenderer {
             })
 
 
-    }
-
-    generateLegend(title: any, mapVals: any, colorScale: any, type: any) {
-
-        // generate containing group if necessarry
-        var container = d3.select("#legendID")
-
-        if (container.empty()) { // if legend doesn't already exist
-            container = d3.select('svg').append("g")
-                .attr("id", "legendID")
-        }
-
-
-        // we need a unique list of values for the legend
-        // as well as the count of those unique vals
-        // they will sort alphabetically or descending if integer
-        var counts = d3.map() as any; // {legend Row: counts}
-        mapVals.values().forEach((d: any) => {
-            if (d != '') { // ignore empty data
-                var count = 1
-                if (counts.has(d)) {
-                    count = counts.get(d) + count;
-                }
-                counts.set(d, count);
-            }
-        });
-
-
-
-        if (container.select("#legendID g").empty()) {
-            var transform = 'translate(5,0)';
-        } else {
-            var offset = 15 + (d3.select('#legendID').node() as SVGSVGElement).getBBox().height;
-            var transform = 'translate(5,' + offset + ')';
-        }
-        var legend = container.append("g")
-            .attr("transform", transform)
-            .attr("id", type == "circle" ? "node_legend" : "background_legend")
-
-        // if legend is to show an ordinal range, we represent it as a colorbar
-        // this way we don't have a potentially gigantic legend
-        // the length 11 is set by the colorbrewer scale
-        var sorted = autoSort(counts.keys());
-        var bar = false;
-
-        let scale: any
-        let labelScale: any
-
-        // check if we have all numbers, ignore empty values
-        if (parseInt(sorted[0])) {
-            bar = true;
-            scale = d3.scale.quantize().domain(range(0, 10)).range(colorScale.range()); // mapping from metadata value to color
-            labelScale = d3.scale.ordinal().domain(range(0, 10)).rangePoints(d3.extent(sorted))
-            sorted = range(0, 10);
-        } else {
-            scale = colorScale;
-        }
-
-        legend.append("text")
-            .style("font-weight", "bold")
-            .text(type == "circle" ? "Node: " : "Background: ")
-            .attr("class", "lead")
-        legend.append("text")
-            .attr("class", "lead")
-            .attr("x", type == "circle" ? 70 : 140)
-            .text(title);
-
-
-        var legendRow = legend.selectAll('g.legend')
-            .data(sorted).enter()
-            .append('g')
-            .attr('class', 'legend')
-            .attr('transform', function (d: any, i: any) { return 'translate(11,' + (25 + i * 20) + ')'; })
-
-        if (type == 'circle' && bar === false) {
-            legendRow.append(type)
-                .attr('r', 4.5)
-                .attr('fill', function (d: any) { return dimColor(colorScale(d)) } as any)
-                .attr('stroke', function (d: any) { return colorScale(d) })
-                .attr("stroke-width", 2);
-        } else if (type == 'rect' || bar === true) {
-            legendRow.append('rect')
-                .attr('width', bar ? 45 : 9)
-                .attr('height', bar ? 20 : 9)
-                .attr('x', bar ? -4.5 : -4.5)
-                .attr('y', bar ? -11 : -4.5)
-                .attr('fill', function (d: any) { return scale(d) })
-        }
-
-        legendRow.append('text')
-            .attr('dx', bar ? 0 : 8)
-            .attr('dy', 3)
-            .attr('text-anchor', 'start')
-            .attr("fill", (d: any) => {
-                if (bar) {
-                    var L = d3.hsl(scale(d)).l;
-                    var rgb = this.legendColorScale(L);
-                    return d3.rgb(rgb, rgb, rgb);
-                } else {
-                    return 'black';
-                }
-            })
-            .text(function (d: any) {
-                if (bar) {
-                    return labelScale(d).toFixed(2);
-                } else {
-                    return '(' + counts.get(d) + ') ' + d;
-                }
-            } as any)
     }
 
     selectLeafs(geneMap: any, color = "red") {

@@ -27,12 +27,12 @@ Returns:
            nodes have minimum separation
 */
 
-export function scaleLeafSeparation(treeGlobalObject: any, tree: any, nodes: any, minSeparation=22) {
+export function scaleLeafSeparation(treeGlobalObject: any, tree: any, nodes: any, minSeparation = 30) {
 
-    var traverseTree = function(root: any, callback: any) {
+    var traverseTree = function (root: any, callback: any) {
         callback(root);
         if (root.children) {
-            for (var i = root.children.length - 1; i >= 0; i--){
+            for (var i = root.children.length - 1; i >= 0; i--) {
                 traverseTree(root.children[i], callback)
             };
         }
@@ -40,7 +40,7 @@ export function scaleLeafSeparation(treeGlobalObject: any, tree: any, nodes: any
 
     // get all leaf X positions
     let leafXpos: any[] = [];
-    traverseTree(nodes[0], function(node: any) {
+    traverseTree(nodes[0], function (node: any) {
         if (!node.children) {
             leafXpos.push(node.x);
         }
@@ -48,8 +48,8 @@ export function scaleLeafSeparation(treeGlobalObject: any, tree: any, nodes: any
 
     // calculate leaf vertical distances
     let leafXdist: any[] = [];
-    leafXpos = leafXpos.sort(function(a, b) { return a-b });
-    leafXpos.forEach( function(x,i) {
+    leafXpos = leafXpos.sort(function (a, b) { return a - b });
+    leafXpos.forEach(function (x, i) {
         if (i + 1 != leafXpos.length) {
             var dist = leafXpos[i + 1] - x;
             if (dist) {
@@ -62,7 +62,7 @@ export function scaleLeafSeparation(treeGlobalObject: any, tree: any, nodes: any
         .range([0, minSeparation])
         .domain([0, d3.min(leafXdist)])
 
-    traverseTree(nodes[0], function(node: any) {
+    traverseTree(nodes[0], function (node: any) {
         node.x = xScale(node.x)
     })
 
