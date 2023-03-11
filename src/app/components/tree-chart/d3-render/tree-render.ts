@@ -53,6 +53,7 @@ export class TreeRenderer {
     shiftY = 0;
     zoom = d3.behavior.zoom()
     treeType = 'rectangular'
+    highlightedLeaf = undefined;
     scale = true
     tip = d3.tip()
         .attr('class', 'd3-tip')
@@ -74,6 +75,7 @@ export class TreeRenderer {
     }
 
     event$ = new BehaviorSubject(null)
+    events$: BehaviorSubject<any> = new BehaviorSubject<any>(null)
 
     constructor() { }
 
@@ -210,7 +212,7 @@ export class TreeRenderer {
         }
 
 
-        this.svg.selectAll("g.leaf circle")
+        this.svg.selectAll("g.leaf circle.main")
             .attr("r", options.sliderLeafR)
             .style('fill', '#aaa')
 
@@ -231,6 +233,9 @@ export class TreeRenderer {
 
 
         this.formatTree(this.nodes, this.treeGlobalObject.links, yscale, xscale, this.height, opts);
+
+
+
     }
 
     formatTree(nodes: any, links: any, yscale: any = null, xscale: any = null, height: any, opts: any) {
@@ -285,22 +290,7 @@ export class TreeRenderer {
             } as any)
 
         var clickFlag = false;
-        const tip = this.tip
-        var leaf_obj = d3.selectAll('.leaf')
-            .style('cursor', 'pointer')
-            .on('mouseover', this.tip.show)
-            .on('mouseout', this.tip.hide)
-        // .on('click', tip.show)
-        // leaf_obj
-        // leaf_obj.on('click', function(...d){
-        //     console.log(d)
-        //     if(clickFlag){
-        //        tip.hide(d[0]);  
-        //     }else{
-        //        tip.show(d[0]);  
-        //     }
-        //     return clickFlag = !clickFlag;
-        // })
+
 
 
         // .on('mouseover', this.tip.show)
@@ -314,6 +304,12 @@ export class TreeRenderer {
             .attr("opacity", function (d: any) { return d.children ? 1e-6 : 1 });
 
         // node circles
+
+        this.node.append("circle")
+            .attr("class", "helper")
+            .attr("r", 5)
+            .attr("opacity", 0);
+
         this.node.append("circle")
             .attr("r", function (d: any) {
                 if (!d.children || d.depth == 0) {
@@ -321,27 +317,50 @@ export class TreeRenderer {
                 } else {
                     return 3;
                 }
-            });
-
-
-        d3.selectAll('.inner.node circle')
-            .on("click", (e: any) => {
-                // const c0 = e.children[0]
-                // const c1 = e.children[1]
-                // e.children = [c1, c0]
-
-                // const b0 = e.branchset[0]
-                // const b1 = e.branchset[1]
-                // e.branchset = [b1, b0]
-
-                this.event$.next(e)
             })
+            .attr("class", "main")
+
+
 
 
         // node label
         this.node.append("text")
             .attr("class", function (d: any) { return d.children ? "distanceLabel" : "leafLabel" })
             .attr("dy", function (d: any) { return d.children ? -6 : 3 })
+
+
+
+
+        d3.selectAll('.leaf')
+            .style('cursor', 'pointer')
+            .on('click', (d) => {
+                this.events$.next({
+                    type: 'clickOnLeaf',
+                    data: d,
+                })
+                this.highlightedLeaf = d.name
+                this.svg.selectAll("g.leaf circle.helper")
+                    .attr("r", (d: any) => {
+                        if (d.name === this.highlightedLeaf) {
+                            return 8
+                        }
+                        return 3
+                    })
+                    .attr("opacity", (d: any) => {
+                        if (d.name === this.highlightedLeaf) {
+                            return 0.7
+                        }
+                        return 0
+                    })
+                    .style('fill', (d: any) => {
+                        if (d.name === this.highlightedLeaf) {
+                            return "#77C66E"
+                        }
+                        return "#aaa"
+                    })
+            })
+
+
 
         this.orientTreeLabels();
 
@@ -442,7 +461,7 @@ export class TreeRenderer {
     }
 
     selectLeafs(geneMap: any, color = "red") {
-        this.svg.selectAll("g.leaf circle")
+        this.svg.selectAll("g.leaf circle.main")
             .attr("r", function (d: any) {
                 return geneMap[d.name] ? 10 : 3
             })

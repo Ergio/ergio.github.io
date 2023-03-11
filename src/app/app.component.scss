@@ -1,18 +1,7 @@
-
-
 :host {
-  margin: 10px;
+  padding: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-}
-
-.example-card {
-  width: 100%;
-}
-  
-.example-header-image {
-  // background-image: url('https://material.angular.io/assets/img/examples/shiba1.jpg');
-  background-size: cover;
 }

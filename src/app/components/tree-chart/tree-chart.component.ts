@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ChangeDetectorRef, Input } from '@angular/core';
+import { AfterViewInit, Component, ChangeDetectorRef, Input, OnDestroy } from '@angular/core';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -16,6 +16,8 @@ import { MainWidgetComponent } from '../main-widget/main-widget.component';
 import { TreeDataType } from '../main-widget/tree-data-type';
 import { downloadTreeChart } from './d3-render/updated-utils/download';
 import { MatIconModule } from '@angular/material/icon';
+import { Subscription } from 'rxjs';
+import { GeneDetailsComponent } from '../gene-details/gene-details.component';
 
 
 @Component({
@@ -35,14 +37,17 @@ import { MatIconModule } from '@angular/material/icon';
     LegendWidget2Component,
     FormsModule,
     MatTabsModule,
-    MatIconModule
+    MatIconModule,
+    GeneDetailsComponent
   ]
 })
-export class TreeChartComponent implements AfterViewInit {
+export class TreeChartComponent implements AfterViewInit, OnDestroy {
   treeData: TreeDataType = {
     treeDataObject: {},
     geneData: {}
   } as TreeDataType
+
+  geneDetails: any;
 
   treeType: 'radial' | 'rectangular' = 'radial'
 
@@ -51,16 +56,24 @@ export class TreeChartComponent implements AfterViewInit {
 
   treeRenderer = new TreeRenderer()
 
+  subs!: Subscription
+
   constructor(
     private cd: ChangeDetectorRef
   ) { }
+  ngOnDestroy(): void {
+    this.subs.unsubscribe()
+  }
 
   ngAfterViewInit(): void {
     this.rerender(this.treeData.treeDataObject, this.treeData.geneData)
   }
 
   rerender(treeData: any, geneData: any) {
+    console.log('rerender')
     this.treeRenderer.renderTree(treeData, '#tree-chart', { treeType: this.treeType }, geneData)
+    this.listenEvents()
+    this.geneDetails = undefined
   }
 
   onSelectOptions(e: any) {
@@ -85,5 +98,19 @@ export class TreeChartComponent implements AfterViewInit {
 
   download() {
     downloadTreeChart()
+  }
+
+  listenEvents() {
+    if (this.subs) {
+      this.subs.unsubscribe()
+    }
+    this.subs = this.treeRenderer.events$.subscribe(event => {
+      console.log(event)
+
+      if (event && event.type === "clickOnLeaf") {
+        this.geneDetails = this.treeData.geneData[event.data.name]
+
+      }
+    })
   }
 }

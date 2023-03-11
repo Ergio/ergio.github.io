@@ -1,0 +1,10 @@
+<mat-card class="legend-card">
+    <mat-card-content>
+
+        <div displ *ngFor="let feature of geneData" style="display: flex; flex-direction: column; padding-bottom: 5px;">
+            <div style="font-weight: 800">{{feature[0]}}:&nbsp;</div>
+            <div style="max-width: 400px; overflow-wrap: break-word;">{{feature[1]}}</div>
+        </div>
+
+    </mat-card-content>
+</mat-card>

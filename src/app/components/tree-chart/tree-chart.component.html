@@ -1,25 +1,34 @@
 <div class="container" *ngIf="treeData.geneData">
-    <mat-card class="chart card">
+    <mat-card class="chart">
         <button (click)="download()" mat-icon-button style="position:absolute">
             <mat-icon>download</mat-icon>
         </button>
         <mat-card-content>
             <div id='tree-chart'></div>
+
+            <div style=" height: 100%; width: 100%; display: flex; align-items: center; justify-content: center; position: absolute; top: 0; font-size: 40px;"
+                *ngIf="treeData.treeDataObject.branchset && treeData.treeDataObject.branchset.length === 0">
+                No Data
+            </div>
         </mat-card-content>
     </mat-card>
-
-    <div class="card tab-group">
-        <mat-tab-group animationDuration="0ms">
+    <div class="card">
+        <mat-tab-group class="tab-group" animationDuration="0ms">
             <mat-tab label="Main">
+                <div class="small-h-spacer"></div>
                 <app-main-widget (changeTreeChartHideLabels)="onChangeTreeChartHideLabels($event)"
                     (changeTreeChartType)="onChangeTreeChartType($event)"
                     (changeTreeChartData)="onChangeTreeChartData($event)"></app-main-widget>
+                <div class="small-h-spacer"></div>
+                <app-gene-details *ngIf="geneDetails" [data]="geneDetails"></app-gene-details>
             </mat-tab>
             <mat-tab label="Filters">
+                <div class="small-h-spacer"></div>
                 <app-legend-widget class="widget" (selectOptions)="onSelectOptions($event)"
                     [resetData]="treeData.treeDataObject" [legendData]="treeData.geneData"></app-legend-widget>
             </mat-tab>
             <mat-tab label="Search">
+                <div class="small-h-spacer"></div>
                 <app-legend-widget2 class="widget" (selectOptions)="onSelectOptions($event)"
                     [resetData]="treeData.treeDataObject" [legendData]="treeData.geneData"></app-legend-widget2>
             </mat-tab>
