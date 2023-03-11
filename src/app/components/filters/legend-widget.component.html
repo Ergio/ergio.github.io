@@ -1,26 +1,20 @@
-
 <mat-card class="legend-card">
     <mat-card-content>
         <mat-form-field appearance="outline">
-        <mat-label>Feature</mat-label>
-        <mat-select (selectionChange)="onFeatureChange($event)" [(value)]="selectedFeature">
-            <mat-option *ngFor="let feature of features" [value]="feature">
-            {{feature}}
-            </mat-option>
-        </mat-select>
+            <mat-label>Feature</mat-label>
+            <mat-select (selectionChange)="onFeatureChange($event)" [(value)]="selectedFeature">
+                <mat-option *ngFor="let feature of features" [value]="feature">
+                    {{feature}}
+                </mat-option>
+            </mat-select>
         </mat-form-field>
         <section *ngIf="formGroup" class="example-section" [formGroup]="formGroup">
-            <div *ngIf="selectedFeature === 'LENGTH'" style="display: flex;">
-                <div style="width: 2px; height: 20px;" *ngFor="let i of gradiaenArr" [style.backgroundColor]="perc2color(i * 40)"></div>
-            </div>
             <p class="checkbox-row" *ngFor="let option of featureOptions; index as i;">
                 <mat-checkbox [formControlName]="option">
-                    <span *ngIf="selectedFeature !== 'LENGTH'" style="height: 10px; min-width: 10px" [style.backgroundColor]="colorMap[i]">&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    <span *ngIf="selectedFeature === 'LENGTH'" style="height: 10px; min-width: 10px" [style.backgroundColor]="perc2color(procesedFeatureOptions[i])">&nbsp;&nbsp;&nbsp;&nbsp;</span>
-
+                    <span style="height: 10px; min-width: 10px"
+                        [style.backgroundColor]="colorMap[i]">&nbsp;&nbsp;&nbsp;&nbsp;</span>
                     <span class="count">&nbsp;({{procesedFeatureOptionsLength[i]}})</span>
                     <span>{{procesedFeatureOptions[i] || 'Not defined'}}</span>
-                    
                 </mat-checkbox>
             </p>
         </section>

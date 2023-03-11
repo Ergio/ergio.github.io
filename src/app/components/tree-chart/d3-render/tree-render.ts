@@ -310,21 +310,21 @@ export class TreeRenderer {
             .style('cursor', 'pointer')
             .on('mouseover', this.tip.show)
             .on('mouseout', this.tip.hide)
-            // .on('click', tip.show)
-            // leaf_obj
-            // leaf_obj.on('click', function(...d){
-            //     console.log(d)
-            //     if(clickFlag){
-            //        tip.hide(d[0]);  
-            //     }else{
-            //        tip.show(d[0]);  
-            //     }
-            //     return clickFlag = !clickFlag;
-            // })
+        // .on('click', tip.show)
+        // leaf_obj
+        // leaf_obj.on('click', function(...d){
+        //     console.log(d)
+        //     if(clickFlag){
+        //        tip.hide(d[0]);  
+        //     }else{
+        //        tip.show(d[0]);  
+        //     }
+        //     return clickFlag = !clickFlag;
+        // })
 
 
-            // .on('mouseover', this.tip.show)
-            // .on('mouseout', this.tip.hide)
+        // .on('mouseover', this.tip.show)
+        // .on('mouseout', this.tip.hide)
 
         // node backgrounds
         this.node.append("rect")
@@ -353,8 +353,8 @@ export class TreeRenderer {
                 // const b0 = e.branchset[0]
                 // const b1 = e.branchset[1]
                 // e.branchset = [b1, b0]
-                
-               this.event$.next(e)
+
+                this.event$.next(e)
             })
 
 
@@ -650,6 +650,20 @@ export class TreeRenderer {
             .style('fill', function (d: any) {
                 return geneMap[d.name] ? geneMap[d.name] : "#aaa"
             })
+
+        // this.svg.selectAll("g.leaf.node rect")
+        //     // .attr("r", function (d: any) {
+        //     //     return geneMap[d.name] ? 10 : 3
+        //     // })
+
+        //     .attr("width", "10px")
+        //     .attr("height", "20px")
+        //     .attr("y", "0px")
+        //     .attr("x", "60px")
+        //     .attr("opacity", "1")
+        //     .style('fill', function (d: any) {
+        //         return geneMap[d.name] ? geneMap[d.name] : "#aaa"
+        //     })
     }
 
     hideLabels(isHidden: boolean) {

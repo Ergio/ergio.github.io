@@ -39,7 +39,11 @@ export class LegendWidgetComponent implements OnInit, OnChanges {
 
   colorMap = colorArr;
 
+
+  gradiaenArr = [...Array(100).keys()]
+
   constructor(private _formBuilder: FormBuilder) { }
+
 
   ngOnInit(): void {
     this.init()
@@ -80,14 +84,21 @@ export class LegendWidgetComponent implements OnInit, OnChanges {
 
     this.formGroup.valueChanges.subscribe(optionsMap => {
 
-      let colorOptionMap = this.featureOptions.reduce((acc, option, index) => {
-        acc[option + '_color_option'] = optionsMap[option] ? colorArr[index] : ''
+      let colorOptionMap = Object.entries(optionsMap).reduce((acc, [k, val], index) => {
+        acc[k] = val ? colorArr[index] : val
         return acc;
       }, {} as any)
+      if (this.selectedFeature === "LENGTH") {
+        colorOptionMap = Object.entries(optionsMap).reduce((acc, [k, val], index) => {
+          acc[k] = val ? this.perc2color(k) : val
+
+          return acc;
+        }, {} as any)
+      }
 
       const resultMap = legendDataArr.reduce((acc: any, cur: any) => {
         const unique_id = cur['UNIQUE_ID'];
-        acc[unique_id] = colorOptionMap[cur[this.selectedFeature] + '_color_option'];
+        acc[unique_id] = colorOptionMap[cur[this.selectedFeature]];
         return acc;
       }, {})
 
@@ -96,4 +107,22 @@ export class LegendWidgetComponent implements OnInit, OnChanges {
       )
     })
   }
+
+
+  perc2color(k: string | number) {
+    let perc = (+k) / 40
+
+    var r, g, b = 0;
+    if (perc < 50) {
+      r = 255;
+      g = Math.round(5.1 * perc);
+    }
+    else {
+      g = 255;
+      r = Math.round(510 - 5.10 * perc);
+    }
+    var h = r * 0x10000 + g * 0x100 + b * 0x1;
+    return '#' + ('000000' + h.toString(16)).slice(-6);
+  }
+
 }

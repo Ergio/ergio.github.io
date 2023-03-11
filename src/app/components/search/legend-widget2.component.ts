@@ -22,6 +22,7 @@ export class LegendWidget2Component implements OnInit, OnChanges {
 
   @Input() set legendData(data: any) {
     this.legendD = data
+    this.features = Object.keys(data[Object.keys(data)[0]])
   }
 
   @Input() set resetData(data: any) {
@@ -34,15 +35,8 @@ export class LegendWidget2Component implements OnInit, OnChanges {
 
   searchValue = '';
   searchList: string[] = [];
-  features = ["GENE_NAME",
-    "CLUSTER", "ORGANISM",
-    "CLUSTER_PRODUCT", "BIOSYNTHETIC_CLASSES",
-    "GENE_PRODUCT", "PROTEIN_ID",
-    "DATA_TYPE", "LENGTH",
-    "START",
-    "STOP",
-    "GC"]
-  selectedFeature = "BIOSYNTHETIC_CLASSES"
+  features: string[] = []
+  selectedFeature = "BIOSYNTHETIC_CLASS"
 
   featureOptions: string[] = []
   procesedFeatureOptions: string[] = []
