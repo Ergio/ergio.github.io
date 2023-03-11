@@ -4,13 +4,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { LegendWidgetComponent } from '../legend-widget/legend-widget.component';
+import { LegendWidgetComponent } from '../filters/legend-widget.component';
 import { CommonModule } from '@angular/common';
 import { TreeRenderer } from './d3-render/tree-render';
 import { FormsModule } from '@angular/forms';
 
 
-import { LegendWidget2Component } from '../legend-widget2/legend-widget2.component';
+import { LegendWidget2Component } from '../search/legend-widget2.component';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MainWidgetComponent } from '../main-widget/main-widget.component';
 import { TreeDataType } from '../main-widget/tree-data-type';
