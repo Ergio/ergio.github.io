@@ -11,6 +11,12 @@ import empty from './tree-data/empty.json';
 import allAAData from './tree-data/all_aa.json';
 import allDataXlsx from './tree-data/all_xlsx.json';
 
+import transmembraneAAData from './tree-data/transmembrane_aa.json';
+import transmembraneDataXlsx from './tree-data/transmembrane_desc.json';
+
+import notTransmembraneAAData from './tree-data/not_transmembrane_aa.json';
+import notTransmembraneDataXlsx from './tree-data/not_transmembrane_desc.json';
+
 export const dataMap = {
     abc: {
         nucleotides: {
@@ -40,6 +46,26 @@ export const dataMap = {
         amino_acids: {
             treeData: allAAData as any,
             description: allDataXlsx as any,
+        }
+    },
+    transmembrane: {
+        nucleotides: {
+            treeData: empty as any,
+            description: transmembraneDataXlsx as any,
+        },
+        amino_acids: {
+            treeData: transmembraneAAData as any,
+            description: transmembraneDataXlsx as any,
+        }
+    },
+    notTransmembrane: {
+        nucleotides: {
+            treeData: empty as any,
+            description: notTransmembraneDataXlsx as any,
+        },
+        amino_acids: {
+            treeData: notTransmembraneAAData as any,
+            description: notTransmembraneDataXlsx as any,
         }
     }
 }

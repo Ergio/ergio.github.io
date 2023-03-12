@@ -32,7 +32,7 @@ export class MainWidgetComponent implements OnInit {
   @Output() changeTreeChartType: EventEmitter<'radial' | 'rectangular'> = new EventEmitter();
   @Output() changeTreeChartHideLabels: EventEmitter<boolean> = new EventEmitter();
 
-  dataType: 'abc' | 'mfs' | 'all' = 'all'
+  dataType: 'abc' | 'mfs' | 'all' | 'transmembrane' | 'notTransmembrane' = 'transmembrane'
 
   seqType: 'nucleotides' | 'amino_acids' = 'amino_acids'
 
