@@ -1,3 +1,7 @@
+:host {
+    overflow-x: auto;
+    min-height: 300px;
+}
 
 .checkbox-row {
     margin: 0;
@@ -7,9 +11,7 @@ h4 {
     margin: 0;
 }
 
-.legend-card {
-
-}
+.legend-card {}
 
 .count {
     font-size: 10px;

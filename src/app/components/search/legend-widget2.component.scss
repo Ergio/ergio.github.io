@@ -1,9 +1,11 @@
-
-.legend-card {
-    overflow: auto;
+:host {
+    overflow-x: auto;
+    min-height: 300px;
 }
 
-
+.legend-card {
+    min-height: 100%;
+}
 
 .search {
     width: 250px;

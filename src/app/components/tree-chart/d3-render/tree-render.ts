@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import * as D3 from "d3";
 import { step } from "./utils/step";
 import { autoSort } from "./utils/autoSort";
@@ -11,6 +13,9 @@ import { scaleLeafSeparation } from "./utils/scaleLeafSeparation";
 import { dimColor } from "./utils/dimColor";
 import { panZoom } from "./utils/panZoom";
 import { BehaviorSubject } from "rxjs";
+
+
+
 
 declare var d3: {
     behavior: typeof D3.behavior,
@@ -153,7 +158,10 @@ export class TreeRenderer {
             .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")")
 
         this.svg.append("g")
+            .attr("id", "pieSVG")
+        this.svg.append("g")
             .attr("id", "rulerSVG")
+
         this.svg.append("g")
             .attr("id", "treeSVG")
 
@@ -302,6 +310,16 @@ export class TreeRenderer {
             .attr('height', 10 + opts.sliderLeafR * 2)
             .attr('y', -opts.sliderLeafR - 5)
             .attr("opacity", function (d: any) { return d.children ? 1e-6 : 1 });
+
+
+        // this.node.append("rect")
+        //     .attr("class", "rect-filter")
+        //     .attr('width', 10) // width is set when choosing background color
+        //     .attr('height', 10 + opts.sliderLeafR * 2)
+        //     .attr('y', -opts.sliderLeafR - 5)
+        //     .attr("opacity", function (d: any) { return d.children ? 1e-6 : 1 });
+
+        // d3.select('#treeSVG').selectAll("g.root").append("circle").attr("class", "pie")
 
         // node circles
 
@@ -470,6 +488,34 @@ export class TreeRenderer {
                 return geneMap[d.name] ? geneMap[d.name] : "#aaa"
             })
 
+
+        // this.svg.selectAll("g.leaf.node rect")
+        //     // .attr("r", function (d: any) {
+        //     //     return geneMap[d.name] ? 10 : 3
+        //     // })
+
+        //     .attr("width", "10px")
+        //     .attr("height", "20px")
+        //     .attr("y", "0px")
+        //     .attr("x", "60px")
+        //     .attr("opacity", "1")
+        //     .style('fill', function (d: any) {
+        //         return geneMap[d.name] ? geneMap[d.name] : "#aaa"
+        //     })
+    }
+
+
+    selectPieSections(geneMap: any, color = "red") {
+
+
+        d3.select('#pieSVG').selectAll("*").remove();
+
+        if (this.treeType == 'radial') {
+            this.pie(geneMap)
+
+        }
+
+
         // this.svg.selectAll("g.leaf.node rect")
         //     // .attr("r", function (d: any) {
         //     //     return geneMap[d.name] ? 10 : 3
@@ -492,4 +538,76 @@ export class TreeRenderer {
                 return geneData && geneData[d.name] && geneData[d.name].GENE_NAME;
             });
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    pie(geneMap: any) {
+
+
+        var r = 2000; // outer radius 
+
+
+        var data = this.nodes && this.nodes.filter(node => node.branchset && node.branchset.length === 0).map((val, index) => ({
+            value: 1,
+            color: geneMap[val.name] ? geneMap[val.name] : '#fff',
+            name: val.name,
+        }))
+
+
+        var group = d3.select('#pieSVG')
+            .attr("opacity", '0.2')
+
+
+        var arc = d3.svg.arc()
+            .innerRadius(0)
+            .outerRadius(r);
+
+        var pie = d3.layout.pie()
+            .value(function (d) { return d.value; }); // pie function transform data into specific format
+
+        var arcs = group.selectAll(".arc")
+            .data(pie(data))
+            .enter()
+            .append("g")
+            .attr("class", "arc");
+
+        arcs.append("path")
+            .attr("class", "background-arc")
+            .attr("d", arc) // here the arc function works on every record d of data 
+            .attr("fill", function (d) {
+                return (d.data && d.data.color);
+            });
+    }
 }
+
+
+
+
+

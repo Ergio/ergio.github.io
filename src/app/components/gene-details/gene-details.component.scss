@@ -1,3 +1,4 @@
-.legend-card {
-    overflow-x: scroll;
+:host {
+    overflow-x: auto;
+    min-height: 300px;
 }

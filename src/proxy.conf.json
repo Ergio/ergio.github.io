@@ -1,0 +1,7 @@
+{
+    "/api/*": {
+        "target": "https://storage.googleapis.com",
+        "secure": false,
+        "logLevel": "debug"
+    }
+}

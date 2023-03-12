@@ -1,0 +1,22 @@
+<mat-card class="legend-card">
+    <mat-card-content>
+        <mat-form-field appearance="outline">
+            <mat-label>Feature</mat-label>
+            <mat-select (selectionChange)="onFeatureChange($event)" [(value)]="selectedFeature">
+                <mat-option *ngFor="let feature of features" [value]="feature">
+                    {{feature}}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+        <section *ngIf="formGroup" class="example-section" [formGroup]="formGroup">
+            <p class="checkbox-row" *ngFor="let option of featureOptions; index as i;">
+                <mat-checkbox [formControlName]="option">
+                    <span style="height: 10px; min-width: 10px; opacity: 0.2;"
+                        [style.backgroundColor]="colorMap[i]">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    <span class="count">&nbsp;({{procesedFeatureOptionsLength[i]}})</span>
+                    <span>{{procesedFeatureOptions[i] || 'Not defined'}}</span>
+                </mat-checkbox>
+            </p>
+        </section>
+    </mat-card-content>
+</mat-card>

@@ -18,6 +18,8 @@ import { downloadTreeChart } from './d3-render/updated-utils/download';
 import { MatIconModule } from '@angular/material/icon';
 import { Subscription } from 'rxjs';
 import { GeneDetailsComponent } from '../gene-details/gene-details.component';
+import { PieFilterComponent } from '../pie-filter/pie-filter.component';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 
 @Component({
@@ -38,7 +40,9 @@ import { GeneDetailsComponent } from '../gene-details/gene-details.component';
     FormsModule,
     MatTabsModule,
     MatIconModule,
-    GeneDetailsComponent
+    GeneDetailsComponent,
+    PieFilterComponent,
+    HttpClientModule,
   ]
 })
 export class TreeChartComponent implements AfterViewInit, OnDestroy {
@@ -59,8 +63,26 @@ export class TreeChartComponent implements AfterViewInit, OnDestroy {
   subs!: Subscription
 
   constructor(
-    private cd: ChangeDetectorRef
-  ) { }
+    private cd: ChangeDetectorRef,
+    private http: HttpClient
+  ) {
+
+    // this.http.get('https://storage.googleapis.com/bu_genomy_1/2023-03-12T17%3A00%3A49_14279/namespace_namespace1/kind_kind1/abc.json', {
+
+    //   headers: {
+    //     // 'Content-Type': 'text/html; charset=UTF-8',
+    //     // 'Referrer-Policy': 'strict-origin-when-cross-origin',
+    //     'Access-Control-Allow-Origin': '*',
+
+    //     // 'Cache-Control': 'no-cache',
+    //     // 'Accept': '*/*',
+    //     // 'Connection': 'Keep-Alive',
+    //     // 'Accept-Encoding': 'gzip',
+    //     // 'X-Site24x7-Id': '1420e1c1b70c',
+    //     // 'Host': 'storage.googleapis.com',
+    //   }
+    // }).subscribe(console.log)
+  }
   ngOnDestroy(): void {
     this.subs.unsubscribe()
   }
@@ -70,7 +92,6 @@ export class TreeChartComponent implements AfterViewInit, OnDestroy {
   }
 
   rerender(treeData: any, geneData: any) {
-    console.log('rerender')
     this.treeRenderer.renderTree(treeData, '#tree-chart', { treeType: this.treeType }, geneData)
     this.listenEvents()
     this.geneDetails = undefined
@@ -78,6 +99,10 @@ export class TreeChartComponent implements AfterViewInit, OnDestroy {
 
   onSelectOptions(e: any) {
     this.treeRenderer.selectLeafs(e, 'green')
+  }
+
+  onSelectOptionsPie(e: any) {
+    this.treeRenderer.selectPieSections(e, 'green')
   }
 
   onChangeTreeChartHideLabels(event: boolean) {
@@ -105,8 +130,6 @@ export class TreeChartComponent implements AfterViewInit, OnDestroy {
       this.subs.unsubscribe()
     }
     this.subs = this.treeRenderer.events$.subscribe(event => {
-      console.log(event)
-
       if (event && event.type === "clickOnLeaf") {
         this.geneDetails = this.treeData.geneData[event.data.name]
 
