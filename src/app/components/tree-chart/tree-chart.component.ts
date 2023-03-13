@@ -20,6 +20,7 @@ import { Subscription } from 'rxjs';
 import { GeneDetailsComponent } from '../gene-details/gene-details.component';
 import { PieFilterComponent } from '../pie-filter/pie-filter.component';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { cloneDeep } from 'lodash';
 
 
 @Component({
@@ -78,7 +79,8 @@ export class TreeChartComponent implements AfterViewInit, OnDestroy {
   }
 
   rerender(treeData: any, geneData: any) {
-    this.treeRenderer.renderTree(treeData, '#tree-chart', { treeType: this.treeType }, geneData)
+
+    this.treeRenderer.renderTree(cloneDeep(treeData), '#tree-chart', { treeType: this.treeType }, geneData)
     this.listenEvents()
     this.geneDetails = undefined
   }
@@ -119,6 +121,32 @@ export class TreeChartComponent implements AfterViewInit, OnDestroy {
       if (event && event.type === "clickOnLeaf") {
         this.geneDetails = this.treeData.geneData[event.data.name]
 
+      }
+
+      if (event && event.type === "rotateNode") {
+        console.log(event)
+        console.log(this.treeData)
+
+        function searchTree(element: any, matchingTitle: any): any {
+          if (element.name == matchingTitle) {
+            return element;
+          } else if (element.branchset.length) {
+            var i;
+            var result = null;
+            for (i = 0; result == null && i < element.branchset.length; i++) {
+              result = searchTree(element.branchset[i], matchingTitle);
+            }
+            return result;
+          }
+          return null;
+        }
+
+        const node = searchTree(this.treeData.treeDataObject, event.data.name)
+        if (node) {
+          const [a, b] = node.branchset
+          node.branchset = [b, a]
+          this.treeRenderer.renderTree(cloneDeep(this.treeData.treeDataObject), '#tree-chart', { treeType: this.treeType }, this.treeData.geneData)
+        }
       }
     })
   }

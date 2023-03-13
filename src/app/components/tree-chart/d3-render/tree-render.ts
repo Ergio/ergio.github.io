@@ -16,6 +16,12 @@ import { BehaviorSubject } from "rxjs";
 
 
 
+const globalConfig = {
+    startW: 1000,
+    startH: 1000,
+    selectLeafsR: 10,
+}
+
 
 declare var d3: {
     behavior: typeof D3.behavior,
@@ -45,8 +51,8 @@ export class TreeRenderer {
     colorScales: any
     mappingFile: any
     margin = { top: 0, right: 10, bottom: 10, left: 10 };
-    startW = 2000
-    startH = 900
+    startW = globalConfig.startW
+    startH = globalConfig.startH
     width = this.startW - this.margin.left - this.margin.right;
     height = this.startH - this.margin.top - this.margin.bottom;
     nodes: any
@@ -87,8 +93,6 @@ export class TreeRenderer {
     renderTree(dat: any, div: any, options: any, geneData: any) {
         this.treeGlobalObject.geneData = geneData
         this.options = options;
-        this.shiftX = 1;
-        this.shiftY = 1;
 
         // setup radial tree
         this.radialTree = d3.layout.cluster()
@@ -155,7 +159,7 @@ export class TreeRenderer {
             .call(this.zoom.on("zoom", () => panZoom(this.shiftX, this.shiftY)))
             .append("g") // svg g group is translated by fitTree()
             .attr("id", 'canvasSVG')
-            .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")")
+        .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")")
 
         this.svg.append("g")
             .attr("id", "pieSVG")
@@ -241,14 +245,9 @@ export class TreeRenderer {
 
 
         this.formatTree(this.nodes, this.treeGlobalObject.links, yscale, xscale, this.height, opts);
-
-
-
     }
 
     formatTree(nodes: any, links: any, yscale: any = null, xscale: any = null, height: any, opts: any) {
-        const geneData = this.treeGlobalObject.geneData
-
         this.link = d3.select('#treeSVG').selectAll("path.link")
             .data(this.treeGlobalObject.links)
             .enter().append("path")
@@ -297,12 +296,6 @@ export class TreeRenderer {
                 return undefined
             } as any)
 
-        var clickFlag = false;
-
-
-
-        // .on('mouseover', this.tip.show)
-        // .on('mouseout', this.tip.hide)
 
         // node backgrounds
         this.node.append("rect")
@@ -311,18 +304,7 @@ export class TreeRenderer {
             .attr('y', -opts.sliderLeafR - 5)
             .attr("opacity", function (d: any) { return d.children ? 1e-6 : 1 });
 
-
-        // this.node.append("rect")
-        //     .attr("class", "rect-filter")
-        //     .attr('width', 10) // width is set when choosing background color
-        //     .attr('height', 10 + opts.sliderLeafR * 2)
-        //     .attr('y', -opts.sliderLeafR - 5)
-        //     .attr("opacity", function (d: any) { return d.children ? 1e-6 : 1 });
-
-        // d3.select('#treeSVG').selectAll("g.root").append("circle").attr("class", "pie")
-
         // node circles
-
         this.node.append("circle")
             .attr("class", "helper")
             .attr("r", 5)
@@ -378,7 +360,14 @@ export class TreeRenderer {
                     })
             })
 
-
+        d3.selectAll('g.inner')
+            .style('cursor', 'pointer')
+            .on('click', (d) => {
+                this.events$.next({
+                    type: 'rotateNode',
+                    data: d,
+                })
+            })
 
         this.orientTreeLabels();
 
@@ -471,7 +460,7 @@ export class TreeRenderer {
                 if (d.children) { // if inner node
                     return this.treeType == 'radial' && addAngles(deg, d.x) > 180 ? 20 : -20;
                 } else { // if leaf node
-                    return this.treeType == 'radial' && addAngles(deg, d.x) > 180 ? -(5 + rad) : (5 + rad);
+                    return this.treeType == 'radial' && addAngles(deg, d.x) > 180 ? -(10 + rad) : (10 + rad);
                 }
             })
 
@@ -481,27 +470,12 @@ export class TreeRenderer {
     selectLeafs(geneMap: any, color = "red") {
         this.svg.selectAll("g.leaf circle.main")
             .attr("r", function (d: any) {
-                return geneMap[d.name] ? 10 : 3
+                return geneMap[d.name] ? globalConfig.selectLeafsR : 3
             })
             // .attr("opacity", "0.2")
             .style('fill', function (d: any) {
                 return geneMap[d.name] ? geneMap[d.name] : "#aaa"
             })
-
-
-        // this.svg.selectAll("g.leaf.node rect")
-        //     // .attr("r", function (d: any) {
-        //     //     return geneMap[d.name] ? 10 : 3
-        //     // })
-
-        //     .attr("width", "10px")
-        //     .attr("height", "20px")
-        //     .attr("y", "0px")
-        //     .attr("x", "60px")
-        //     .attr("opacity", "1")
-        //     .style('fill', function (d: any) {
-        //         return geneMap[d.name] ? geneMap[d.name] : "#aaa"
-        //     })
     }
 
 
@@ -514,21 +488,6 @@ export class TreeRenderer {
             this.pie(geneMap)
 
         }
-
-
-        // this.svg.selectAll("g.leaf.node rect")
-        //     // .attr("r", function (d: any) {
-        //     //     return geneMap[d.name] ? 10 : 3
-        //     // })
-
-        //     .attr("width", "10px")
-        //     .attr("height", "20px")
-        //     .attr("y", "0px")
-        //     .attr("x", "60px")
-        //     .attr("opacity", "1")
-        //     .style('fill', function (d: any) {
-        //         return geneMap[d.name] ? geneMap[d.name] : "#aaa"
-        //     })
     }
 
     hideLabels(isHidden: boolean) {
