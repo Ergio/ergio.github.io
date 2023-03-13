@@ -17,15 +17,18 @@ export class PieFilterComponent implements OnInit, OnChanges {
 
 
   @Input() set legendData(data: any) {
-    this.legendD = data
-    this.features = Object.keys(data[Object.keys(data)[0]])
+    if (data) {
+      this.legendD = data
+      this.features = Object.keys(data[Object.keys(data)[0]])
+    }
+
   }
 
   @Input() set resetData(data: any) {
     this.formGroup && this.formGroup.reset();
   }
 
-  legendD = {}
+  legendD: any = null
   @Output() selectOptions: any = new EventEmitter<any>();
 
   features: string[] = []
@@ -42,11 +45,17 @@ export class PieFilterComponent implements OnInit, OnChanges {
   constructor(private _formBuilder: FormBuilder) { }
 
   ngOnInit(): void {
-    this.init()
+    if (this.legendD) {
+      this.init()
+
+    }
   }
 
   ngOnChanges(): void {
-    this.init()
+    if (this.legendD) {
+      this.init()
+
+    }
   }
 
   onFeatureChange(e: any) {

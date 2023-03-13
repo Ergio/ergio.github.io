@@ -47,8 +47,8 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 })
 export class TreeChartComponent implements AfterViewInit, OnDestroy {
   treeData: TreeDataType = {
-    treeDataObject: {},
-    geneData: {}
+    treeDataObject: null,
+    geneData: null
   } as TreeDataType
 
   geneDetails: any;
@@ -66,29 +66,15 @@ export class TreeChartComponent implements AfterViewInit, OnDestroy {
     private cd: ChangeDetectorRef,
     private http: HttpClient
   ) {
-
-    // this.http.get('https://storage.googleapis.com/bu_genomy_1/2023-03-12T17%3A00%3A49_14279/namespace_namespace1/kind_kind1/abc.json', {
-
-    //   headers: {
-    //     // 'Content-Type': 'text/html; charset=UTF-8',
-    //     // 'Referrer-Policy': 'strict-origin-when-cross-origin',
-    //     'Access-Control-Allow-Origin': '*',
-
-    //     // 'Cache-Control': 'no-cache',
-    //     // 'Accept': '*/*',
-    //     // 'Connection': 'Keep-Alive',
-    //     // 'Accept-Encoding': 'gzip',
-    //     // 'X-Site24x7-Id': '1420e1c1b70c',
-    //     // 'Host': 'storage.googleapis.com',
-    //   }
-    // }).subscribe(console.log)
   }
   ngOnDestroy(): void {
     this.subs.unsubscribe()
   }
 
   ngAfterViewInit(): void {
-    this.rerender(this.treeData.treeDataObject, this.treeData.geneData)
+    if (this.treeData.treeDataObject && this.treeData.geneData) {
+      this.rerender(this.treeData.treeDataObject, this.treeData.geneData)
+    }
   }
 
   rerender(treeData: any, geneData: any) {

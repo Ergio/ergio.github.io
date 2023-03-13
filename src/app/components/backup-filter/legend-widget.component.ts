@@ -46,11 +46,15 @@ export class LegendWidgetComponent implements OnInit, OnChanges {
 
 
   ngOnInit(): void {
-    this.init()
+    if (this.legendD) {
+      this.init()
+    }
   }
 
   ngOnChanges(): void {
-    this.init()
+    if (this.legendD) {
+      this.init()
+    }
   }
 
   onFeatureChange(e: any) {

@@ -21,8 +21,11 @@ export class LegendWidget2Component implements OnInit, OnChanges {
 
 
   @Input() set legendData(data: any) {
-    this.legendD = data
-    this.features = Object.keys(data[Object.keys(data)[0]])
+    if (data) {
+      this.legendD = data
+      this.features = Object.keys(data[Object.keys(data)[0]])
+    }
+
   }
 
   @Input() set resetData(data: any) {
@@ -47,11 +50,15 @@ export class LegendWidget2Component implements OnInit, OnChanges {
   constructor(private _formBuilder: FormBuilder) { }
 
   ngOnInit(): void {
-    this.init()
+    if (this.legendD) {
+      this.init()
+    }
   }
 
   ngOnChanges(): void {
-    this.init()
+    if (this.legendD) {
+      this.init()
+    }
   }
 
   onFeatureChange(e: any) {
