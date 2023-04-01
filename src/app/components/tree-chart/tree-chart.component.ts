@@ -90,7 +90,7 @@ export class TreeChartComponent implements AfterViewInit, OnDestroy {
   }
 
   onSelectOptionsPie(e: any) {
-    this.treeRenderer.selectPieSections(e, 'green')
+    this.treeRenderer.selectPieSections(e.resultMap, e.type)
   }
 
   onChangeTreeChartHideLabels(event: boolean) {
@@ -125,7 +125,6 @@ export class TreeChartComponent implements AfterViewInit, OnDestroy {
 
       if (event && event.type === "rotateNode") {
         console.log(event)
-        console.log(this.treeData)
 
         function searchTree(element: any, matchingTitle: any): any {
           if (element.name == matchingTitle) {
@@ -142,11 +141,11 @@ export class TreeChartComponent implements AfterViewInit, OnDestroy {
         }
 
         const node = searchTree(this.treeData.treeDataObject, event.data.name)
-        if (node) {
-          const [a, b] = node.branchset
-          node.branchset = [b, a]
-          this.treeRenderer.renderTree(cloneDeep(this.treeData.treeDataObject), '#tree-chart', { treeType: this.treeType }, this.treeData.geneData)
-        }
+        // if (node) {
+        //   const [a, b] = node.branchset
+        //   node.branchset = [b, a]
+        //   this.treeRenderer.renderTree(cloneDeep(this.treeData.treeDataObject), '#tree-chart', { treeType: this.treeType }, this.treeData.geneData)
+        // }
       }
     })
   }

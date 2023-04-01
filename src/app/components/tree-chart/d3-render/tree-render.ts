@@ -18,8 +18,8 @@ import { BehaviorSubject } from "rxjs";
 
 const globalConfig = {
     startW: 1000,
-    startH: 1000,
-    selectLeafsR: 10,
+    startH: 2000,
+    selectLeafsR: 5,
 }
 
 
@@ -479,13 +479,13 @@ export class TreeRenderer {
     }
 
 
-    selectPieSections(geneMap: any, color = "red") {
+    selectPieSections(geneMap: any, type) {
 
 
         d3.select('#pieSVG').selectAll("*").remove();
 
         if (this.treeType == 'radial') {
-            this.pie(geneMap)
+            this.pie(geneMap, type)
 
         }
     }
@@ -532,7 +532,7 @@ export class TreeRenderer {
 
         var r = 2000; // outer radius 
 
-
+        
         var data = this.nodes && this.nodes.filter(node => node.branchset && node.branchset.length === 0).map((val, index) => ({
             value: 1,
             color: geneMap[val.name] ? geneMap[val.name] : '#fff',
