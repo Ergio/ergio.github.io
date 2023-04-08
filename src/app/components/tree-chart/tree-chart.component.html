@@ -32,7 +32,7 @@
                     <app-gene-details *ngIf="geneDetails" [data]="geneDetails"></app-gene-details>
                 </div>
             </mat-tab>
-            <mat-tab label="Filter - Pie Chart">
+            <mat-tab *ngIf="treeType == 'radial'" label="Filter - Pie Chart">
                 <div class="flex-tab-content">
                     <div class="small-h-spacer"></div>
                     <app-pie-filter class="widget" (selectOptions)="onSelectOptionsPie($event)"

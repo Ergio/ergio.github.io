@@ -10,7 +10,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { FormsModule } from '@angular/forms';
 import { fetchDataMap } from './fetchDataMap';
 import { BehaviorSubject } from 'rxjs';
-
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 
 @Component({
@@ -26,6 +26,7 @@ import { BehaviorSubject } from 'rxjs';
     MatCheckboxModule,
     MatButtonModule,
     FormsModule,
+    MatProgressBarModule
   ]
 })
 export class MainWidgetComponent implements OnInit {
@@ -39,9 +40,8 @@ export class MainWidgetComponent implements OnInit {
 
   treeType: 'radial' | 'rectangular' = 'radial'
 
-  treeDataObject: any = dataMap[this.dataType][this.seqType].treeData
-
-  geneData: any = dataMap[this.dataType][this.seqType].description
+  treeDataObject: any = null
+  geneData: any = null
 
   data$ = new BehaviorSubject<any>({
     treeDataObject: null as any,
@@ -50,7 +50,14 @@ export class MainWidgetComponent implements OnInit {
 
   hideLabels = true;
 
-  useLocal = true
+  useLocal = false
+
+  get dataMapExist() {
+    return fetchDataMap[this.dataType][this.seqType].treeData
+  }
+  fetchDataMap = fetchDataMap
+
+  isLoading = false
 
   constructor(
     private cd: ChangeDetectorRef
@@ -68,6 +75,10 @@ export class MainWidgetComponent implements OnInit {
   changeData(e: any) {
     if (e.value !== this.dataType) {
       this.dataType = e.value
+
+      if (!fetchDataMap[this.dataType][this.seqType].treeData) {
+        this.seqType = 'nucleotides' === this.seqType ? 'amino_acids' : 'nucleotides'
+      }
       this.setGeneData()
     }
   }
@@ -112,13 +123,9 @@ export class MainWidgetComponent implements OnInit {
       },
     }
 
-    console.log(this.dataType)
-    console.log(this.seqType)
-    console.log()
+    this.isLoading = true
 
     if (fetchDataMap[this.dataType][this.seqType].treeData) {
-      console.log(fetchDataMap[this.dataType][this.seqType].treeData)
-      console.log(fetch(fetchDataMap[this.dataType][this.seqType].description, opts))
       Promise.all([
         fetch(fetchDataMap[this.dataType][this.seqType].description, opts),
         fetch(fetchDataMap[this.dataType][this.seqType].treeData!, opts)
@@ -127,6 +134,8 @@ export class MainWidgetComponent implements OnInit {
 
           return Promise.all([response1.json(), response2.json()])
         }).then(([response1, response2]) => {
+
+          this.isLoading = false
 
           this.treeDataObject = response2
           this.geneData = response1
