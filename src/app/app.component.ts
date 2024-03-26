@@ -21,6 +21,7 @@ export class AppComponent implements OnInit {
   };
 
   ngOnInit() {
+    console.log(this.user)
     window.Intercom('boot', {
       api_base: 'https://api-iam.intercom.io',
       app_id: 'dgunohch',
